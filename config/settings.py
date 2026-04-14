@@ -118,6 +118,10 @@ CHANNEL_LAYERS = {
     },
 }
 
+# Render free tier optimization
+DATA_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5MB
+FILE_UPLOAD_MAX_MEMORY_SIZE = 5242880
+
 
 # ─── Database ─────────────────────────────────────────────────────────────────
 # Supports both SQLite (default, zero-config) and PostgreSQL (production).

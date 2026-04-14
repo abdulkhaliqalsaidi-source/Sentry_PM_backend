@@ -4,7 +4,7 @@ services:
     name: sentry-backend
     runtime: python
     buildCommand: pip install -r requirements.txt && python manage.py migrate && python manage.py collectstatic --noinput && python create_admin.py
-    startCommand: daphne -b 0.0.0.0 -p $PORT config.asgi:application
+    startCommand: daphne -b 0.0.0.0 -p $PORT --proxy-headers -t 120 config.asgi:application
     envVars:
       - key: SECRET_KEY
         generateValue: true
