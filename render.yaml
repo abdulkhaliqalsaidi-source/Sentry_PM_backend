@@ -1,0 +1,44 @@
+services:
+  # ── Backend (Django + Daphne) ──────────────────────────────
+  - type: web
+    name: sentry-backend
+    runtime: python
+    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate
+    startCommand: daphne -b 0.0.0.0 -p $PORT config.asgi:application
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: ALLOWED_HOSTS
+        value: sentry-backend.onrender.com
+      - key: DB_ENGINE
+        value: postgresql
+      - key: POSTGRES_DB
+        fromDatabase:
+          name: sentry-db
+          property: database
+      - key: POSTGRES_USER
+        fromDatabase:
+          name: sentry-db
+          property: user
+      - key: POSTGRES_PASSWORD
+        fromDatabase:
+          name: sentry-db
+          property: password
+      - key: POSTGRES_HOST
+        fromDatabase:
+          name: sentry-db
+          property: host
+      - key: POSTGRES_PORT
+        fromDatabase:
+          name: sentry-db
+          property: port
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://sentry-frontend.onrender.com
+
+  # ── Database (PostgreSQL) ──────────────────────────────────
+databases:
+  - name: sentry-db
+    databaseName: sentry_pm
+    user: sentry_user

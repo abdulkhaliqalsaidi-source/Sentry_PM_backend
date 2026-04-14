@@ -41,6 +41,11 @@ CORS_ALLOW_HEADERS = [
     'x-requested-with',
 ]
 
+CSRF_TRUSTED_ORIGINS = [
+    h.strip() for h in os.environ.get('CORS_ALLOWED_ORIGINS', '').split(',')
+    if h.strip()
+]
+
 
 # ─── Application Definition ───────────────────────────────────────────────────
 INSTALLED_APPS = [
