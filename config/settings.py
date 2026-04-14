@@ -41,9 +41,14 @@ CORS_ALLOW_HEADERS = [
     'x-requested-with',
 ]
 
-CSRF_TRUSTED_ORIGINS = [
+# CSRF: trust all HTTPS origins on Render + any custom origins
+_csrf_extra = [
     h.strip() for h in os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',')
     if h.strip()
+]
+_allowed_hosts = os.environ.get('ALLOWED_HOSTS', '').split(',')
+CSRF_TRUSTED_ORIGINS = _csrf_extra + [
+    f'https://{h.strip()}' for h in _allowed_hosts if h.strip() and h.strip() != '*'
 ]
 
 
@@ -119,7 +124,20 @@ CHANNEL_LAYERS = {
 # Set DB_ENGINE=postgresql in your .env for PostgreSQL.
 _db_engine = os.environ.get('DB_ENGINE', 'sqlite').lower()
 
-if _db_engine == 'postgresql':
+if os.environ.get('DATABASE_URL'):
+    import urllib.parse as urlparse
+    url = urlparse.urlparse(os.environ['DATABASE_URL'])
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': url.path[1:],
+            'USER': url.username,
+            'PASSWORD': url.password,
+            'HOST': url.hostname,
+            'PORT': url.port or 5432,
+        }
+    }
+elif _db_engine == 'postgresql':
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
