@@ -303,6 +303,9 @@ class ProjectViewSet(viewsets.ModelViewSet):
         
         return Project.objects.filter(query).distinct()
 
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
+
 from rest_framework import filters
 
 class TaskViewSet(viewsets.ModelViewSet):

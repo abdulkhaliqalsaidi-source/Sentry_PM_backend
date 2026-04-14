@@ -66,6 +66,7 @@ class ProjectSerializer(serializers.ModelSerializer):
     completed_tasks = serializers.SerializerMethodField()
     in_progress_tasks = serializers.SerializerMethodField()
     health = serializers.SerializerMethodField()
+    owner = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
         model = Project
