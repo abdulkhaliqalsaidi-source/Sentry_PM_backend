@@ -243,6 +243,10 @@ class TaskSerializer(serializers.ModelSerializer):
     class Meta:
         model = Task
         fields = '__all__'
+        extra_kwargs = {
+            'status': {'required': False, 'allow_null': True},
+            'reporter': {'required': False, 'allow_null': True},
+        }
 
     def get_assignee_name(self, obj):
         return obj.assigned_to.username if obj.assigned_to else None

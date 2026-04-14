@@ -406,6 +406,18 @@ class TaskViewSet(viewsets.ModelViewSet):
 
 
     def perform_create(self, serializer):
+        # Auto-assign first status if not provided
+        project_id = serializer.validated_data.get('project') or (
+            serializer.validated_data.get('project_id')
+        )
+        if project_id and 'status' not in serializer.validated_data:
+            from .models import TaskStatus
+            default_status = TaskStatus.objects.filter(
+                project=project_id
+            ).order_by('order', 'id').first()
+            if default_status:
+                serializer.validated_data['status'] = default_status
+
         task = serializer.save()
         # Fire automation: TASK_CREATED
         try:
