@@ -10,8 +10,14 @@ username = os.environ.get('ADMIN_USERNAME', 'admin')
 email    = os.environ.get('ADMIN_EMAIL', 'admin@example.com')
 password = os.environ.get('ADMIN_PASSWORD', 'admin123')
 
-if not User.objects.filter(username=username).exists():
-    User.objects.create_superuser(username, email, password)
+user, created = User.objects.get_or_create(username=username)
+user.email = email
+user.is_staff = True
+user.is_superuser = True
+user.set_password(password)
+user.save()
+
+if created:
     print(f"Superuser '{username}' created.")
 else:
-    print(f"User '{username}' already exists.")
+    print(f"Superuser '{username}' updated.")
