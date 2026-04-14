@@ -42,7 +42,7 @@ CORS_ALLOW_HEADERS = [
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    h.strip() for h in os.environ.get('CORS_ALLOWED_ORIGINS', '').split(',')
+    h.strip() for h in os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',')
     if h.strip()
 ]
 
