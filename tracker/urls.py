@@ -1,0 +1,35 @@
+from django.urls import path
+from . import views
+from rest_framework_simplejwt.views import TokenRefreshView
+
+urlpatterns = [
+    path('capture/', views.capture_error, name='capture_error'),
+    path('session/', views.save_session, name='save_session'),
+    path('session/<int:event_id>/', views.get_session_data, name='get_session_data'),
+    path('issues/', views.issue_list, name='issue_list'),
+    path('events/', views.event_list, name='event_list'),
+    path('issues/<int:issue_id>/events/', views.get_events_for_issue, name='get_events_for_issue'),
+    path('issues/<int:issue_id>/delete/', views.delete_issue, name='delete_issue'),
+    path('dashboard/', views.dashboard, name='dashboard'),
+    path('test/', views.test_client, name='test_client'),
+    path('client_sdk.js', views.serve_sdk, name='serve_sdk'),
+    path('rrweb.min.js', views.serve_rrweb, name='serve_rrweb'),
+    path('libs/rrweb.min.js', views.serve_rrweb, name='serve_rrweb_libs'),
+    path('test-simulator/', views.serve_test_simulator, name='serve_test_simulator'),
+    path('public/projects/', views.public_project_list, name='public_project_list'),
+    path('register/', views.register_user, name='register_user'),
+    path('login/', views.login_user, name='login_user'),
+    path('profile/', views.get_profile, name='get_profile'),
+    path('profile/update/', views.update_profile, name='update_profile'),
+    path('admin/users/', views.list_users, name='list_users'),
+    path('admin/users/update/', views.update_user_admin, name='update_user_admin'),
+    path('admin/users/create/', views.create_user_admin, name='create_user_admin'),
+    path('admin/users/<int:user_id>/delete/', views.delete_user_admin, name='delete_user_admin'),
+    path('admin/groups/', views.list_permission_groups, name='list_permission_groups'),
+    path('admin/groups/update/', views.update_permission_group, name='update_permission_group'),
+    path('admin/groups/<int:group_id>/delete/', views.delete_permission_group, name='delete_permission_group'),
+    path('cleanup/', views.trigger_cleanup, name='trigger_cleanup'),
+    path('security/change-password/', views.change_password_secure, name='change_password_secure'),
+    path('system/usage/', views.get_system_usage, name='system_usage'),
+    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+]

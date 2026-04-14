@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sentry PM — Documentation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0e1a; --bg2: #0f1629; --bg3: #141b2e;
+  --accent: #6366f1; --accent2: #8b5cf6; --accent3: #06b6d4;
+  --green: #10b981; --yellow: #f59e0b; --red: #ef4444;
+  --text: #e2e8f0; --text2: #94a3b8; --text3: #64748b;
+  --border: rgba(99,102,241,0.15); --glass: rgba(255,255,255,0.03);
+  --radius: 12px; --radius-lg: 20px;
+}
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Inter', sans-serif; background: var(--bg);
+  color: var(--text); line-height: 1.7; min-height: 100vh;
+  background-image: radial-gradient(ellipse 80% 60% at 50% -20%, rgba(99,102,241,0.12), transparent);
+}
+
+/* ── Layout ── */
+.layout { display: flex; min-height: 100vh; }
+.sidebar {
+  width: 260px; flex-shrink: 0; position: sticky; top: 0; height: 100vh;
+  overflow-y: auto; background: var(--bg2);
+  border-right: 1px solid var(--border); padding: 24px 0;
+}
+.main { flex: 1; max-width: 900px; padding: 48px 56px; overflow-x: hidden; }
+
+/* ── Sidebar ── */
+.logo { padding: 0 24px 32px; border-bottom: 1px solid var(--border); }
+.logo-badge {
+  display: inline-flex; align-items: center; gap: 10px;
+  font-size: 18px; font-weight: 800; color: var(--text);
+}
+.logo-icon {
+  width: 38px; height: 38px; border-radius: 10px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+}
+.logo-sub { font-size: 11px; font-weight: 400; color: var(--text3); margin-top: 4px; }
+.nav { padding: 20px 0; }
+.nav-section { padding: 0 24px 8px; font-size: 10px; font-weight: 700; color: var(--text3);
+  text-transform: uppercase; letter-spacing: 1.5px; }
+.nav a {
+  display: flex; align-items: center; gap: 10px; padding: 9px 24px;
+  color: var(--text2); text-decoration: none; font-size: 13.5px;
+  transition: all 0.2s; border-left: 2px solid transparent;
+}
+.nav a:hover { color: var(--text); background: var(--glass); border-left-color: var(--accent); }
+.nav a.active { color: var(--accent); background: rgba(99,102,241,0.08); border-left-color: var(--accent); font-weight: 600; }
+.nav-icon { font-size: 15px; width: 18px; text-align: center; }
+
+/* ── Content ── */
+h1 { font-size: 36px; font-weight: 800; line-height: 1.2; margin-bottom: 16px;
+  background: linear-gradient(135deg, var(--text) 0%, var(--accent) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+h2 { font-size: 24px; font-weight: 700; color: var(--text); margin: 48px 0 16px;
+  padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+h3 { font-size: 17px; font-weight: 600; color: var(--text); margin: 28px 0 12px; }
+h4 { font-size: 14px; font-weight: 600; color: var(--text2); margin: 20px 0 8px; }
+p { color: var(--text2); margin-bottom: 16px; font-size: 15px; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ── Badges & Chips ── */
+.badges { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; }
+.badge {
+  padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;
+  border: 1px solid; display: inline-flex; align-items: center; gap: 5px;
+}
+.badge-blue  { background: rgba(99,102,241,0.15); color: #818cf8; border-color: rgba(99,102,241,0.3); }
+.badge-green { background: rgba(16,185,129,0.15);  color: #34d399; border-color: rgba(16,185,129,0.3); }
+.badge-cyan  { background: rgba(6,182,212,0.15);  color: #22d3ee; border-color: rgba(6,182,212,0.3); }
+.badge-yellow{ background: rgba(245,158,11,0.15); color: #fbbf24; border-color: rgba(245,158,11,0.3); }
+
+/* ── Cards ── */
+.card {
+  background: var(--glass); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 24px; margin-bottom: 20px;
+  backdrop-filter: blur(10px);
+}
+.card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin: 20px 0; }
+.stat-card {
+  background: var(--glass); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 20px; text-align: center;
+}
+.stat-card .val { font-size: 28px; font-weight: 800; color: var(--accent); }
+.stat-card .lbl { font-size: 12px; color: var(--text3); margin-top: 4px; }
+
+/* ── Code ── */
+pre, code {
+  font-family: 'JetBrains Mono', monospace; font-size: 13px;
+}
+pre {
+  background: #0d1117; border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 20px; overflow-x: auto; margin: 16px 0; position: relative;
+}
+code { background: rgba(99,102,241,0.12); padding: 2px 6px; border-radius: 4px; font-size: 13px; color: #a5b4fc; }
+pre code { background: none; padding: 0; color: #e2e8f0; font-size: 13px; }
+.cmd { color: #34d399; }
+.cmt { color: #64748b; font-style: italic; }
+.str { color: #fbbf24; }
+.kw  { color: #818cf8; }
+
+/* ── Steps ── */
+.steps { counter-reset: step-counter; list-style: none; }
+.steps li {
+  counter-increment: step-counter; display: flex; gap: 16px;
+  margin-bottom: 24px; position: relative;
+}
+.steps li::before {
+  content: counter(step-counter); min-width: 32px; height: 32px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 13px; color: white; flex-shrink: 0; margin-top: 2px;
+}
+.steps li .step-body { flex: 1; }
+.steps li .step-title { font-weight: 600; color: var(--text); margin-bottom: 6px; font-size: 15px; }
+
+/* ── Alerts ── */
+.alert { border-radius: var(--radius); padding: 16px 20px; margin: 20px 0; display: flex; gap: 12px; }
+.alert-icon { font-size: 18px; flex-shrink: 0; margin-top: 2px; }
+.alert-body { font-size: 14px; }
+.alert-body strong { display: block; margin-bottom: 4px; font-size: 15px; }
+.alert-info    { background: rgba(6,182,212,0.08); border: 1px solid rgba(6,182,212,0.2); color: #7dd3fc; }
+.alert-success { background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.2); color: #6ee7b7; }
+.alert-warning { background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.2); color: #fcd34d; }
+.alert-danger  { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); color: #fca5a5; }
+
+/* ── Table ── */
+table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px; }
+thead th { background: rgba(99,102,241,0.1); color: var(--text); font-weight: 600;
+  padding: 12px 16px; text-align: left; border-bottom: 2px solid var(--border); }
+tbody td { padding: 12px 16px; border-bottom: 1px solid var(--border); color: var(--text2); vertical-align: top; }
+tbody tr:hover td { background: var(--glass); }
+
+/* ── Feature List ── */
+.feature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 20px 0; }
+.feature-item {
+  background: var(--glass); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 14px 18px; display: flex; align-items: flex-start; gap: 12px;
+}
+.feature-item .fi-icon { font-size: 20px; flex-shrink: 0; }
+.feature-item .fi-title { font-size: 13.5px; font-weight: 600; color: var(--text); }
+.feature-item .fi-desc  { font-size: 12px; color: var(--text3); margin-top: 2px; }
+
+/* ── Credentials ── */
+.creds-box {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 20px 0;
+}
+.cred-card {
+  background: var(--glass); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 18px; position: relative; overflow: hidden;
+}
+.cred-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+}
+.cred-role { font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 1px; color: var(--accent); margin-bottom: 12px; }
+.cred-row  { display: flex; justify-content: space-between; margin-bottom: 6px;
+  font-size: 13px; }
+.cred-key  { color: var(--text3); }
+.cred-val  { font-family: 'JetBrains Mono', monospace; color: var(--text); font-weight: 500; }
+
+/* ── FAQ ── */
+.faq-item { border: 1px solid var(--border); border-radius: var(--radius);
+  margin-bottom: 8px; overflow: hidden; }
+.faq-q {
+  padding: 16px 20px; font-weight: 600; font-size: 14.5px; cursor: pointer;
+  display: flex; justify-content: space-between; align-items: center; color: var(--text);
+  background: var(--glass);
+}
+.faq-q:hover { background: rgba(99,102,241,0.08); }
+.faq-a { padding: 16px 20px; font-size: 14px; color: var(--text2);
+  border-top: 1px solid var(--border); background: var(--bg); display: none; }
+.faq-item.open .faq-a { display: block; }
+.faq-item.open .faq-arrow { transform: rotate(180deg); }
+.faq-arrow { transition: transform 0.2s; }
+
+/* ── Changelog ── */
+.changelog-item { display: flex; gap: 20px; margin-bottom: 28px; }
+.changelog-ver {
+  min-width: 80px; text-align: center;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border-radius: var(--radius); padding: 8px; font-weight: 700;
+  font-size: 13px; height: fit-content;
+}
+.changelog-body { flex: 1; }
+.changelog-date { font-size: 12px; color: var(--text3); margin-bottom: 8px; }
+.changelog-list { list-style: none; }
+.changelog-list li { font-size: 14px; color: var(--text2); padding: 3px 0; display: flex; align-items: flex-start; gap: 8px; }
+.changelog-list li::before { content: '→'; color: var(--accent); flex-shrink: 0; font-weight: 600; }
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg2); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .layout { flex-direction: column; }
+  .sidebar { width: 100%; height: auto; position: relative; }
+  .main { padding: 32px 24px; }
+  .feature-grid, .creds-box { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-badge">
+        <div class="logo-icon">🎯</div>
+        Sentry PM
+      </div>
+      <div class="logo-sub">Documentation v1.0.0</div>
+    </div>
+    <nav class="nav">
+      <div class="nav-section" style="margin-top:16px">Language</div>
+      <a href="index_ar.html" style="color:var(--accent); font-weight:600;"><span class="nav-icon">🌍</span> العربية (Arabic)</a>
+
+      <div class="nav-section" style="margin-top:16px">Getting Started</div>
+      <a href="#overview" class="active"><span class="nav-icon">📋</span> Overview</a>
+      <a href="#requirements"><span class="nav-icon">⚙️</span> Requirements</a>
+      <a href="#installation"><span class="nav-icon">🚀</span> Installation</a>
+      <a href="#configuration"><span class="nav-icon">🔧</span> Configuration</a>
+      <a href="#demo"><span class="nav-icon">🎭</span> Demo Accounts</a>
+
+      <div class="nav-section" style="margin-top:24px">Features</div>
+      <a href="#features"><span class="nav-icon">✨</span> All Features</a>
+      <a href="#error-tracking"><span class="nav-icon">🐛</span> Error Tracking</a>
+      <a href="#project-mgmt"><span class="nav-icon">📊</span> Project Management</a>
+      <a href="#evaluations"><span class="nav-icon">⭐</span> Evaluations</a>
+
+      <div class="nav-section" style="margin-top:24px">Deployment</div>
+      <a href="#offline"><span class="nav-icon">🖥️</span> Offline (Local)</a>
+      <a href="#online"><span class="nav-icon">🌐</span> Online (Production)</a>
+      <a href="#sdk"><span class="nav-icon">🔗</span> SDK Integration</a>
+
+      <div class="nav-section" style="margin-top:24px">Reference</div>
+      <a href="#env-vars"><span class="nav-icon">🔑</span> Environment Variables</a>
+      <a href="#faq"><span class="nav-icon">❓</span> FAQ</a>
+      <a href="#changelog"><span class="nav-icon">📝</span> Changelog</a>
+      <a href="#support"><span class="nav-icon">💬</span> Support</a>
+    </nav>
+  </aside>
+
+  <!-- ── MAIN ── -->
+  <main class="main">
+
+    <!-- Overview -->
+    <section id="overview">
+      <div class="badges">
+        <span class="badge badge-blue">Django 5.0</span>
+        <span class="badge badge-green">Vue.js 3</span>
+        <span class="badge badge-cyan">WebSockets</span>
+        <span class="badge badge-yellow">RTL/LTR</span>
+      </div>
+      <h1>Sentry PM</h1>
+      <p style="font-size:18px; color:var(--text2); margin-bottom:32px;">
+        Advanced Project Management &amp; Error Tracking Platform.
+        A full-stack solution combining Jira-like project management with Sentry-like error monitoring — bilingual (Arabic &amp; English), with a stunning Vibrant-Glass UI.
+      </p>
+
+      <div class="card-grid">
+        <div class="stat-card"><div class="val">50+</div><div class="lbl">Features</div></div>
+        <div class="stat-card"><div class="val">2</div><div class="lbl">Languages (AR/EN)</div></div>
+        <div class="stat-card"><div class="val">Real-time</div><div class="lbl">WebSocket Notifications</div></div>
+        <div class="stat-card"><div class="val">v1.0.0</div><div class="lbl">Current Version</div></div>
+      </div>
+    </section>
+
+    <!-- Requirements -->
+    <section id="requirements">
+      <h2>⚙️ System Requirements</h2>
+      <table>
+        <thead><tr><th>Component</th><th>Required</th><th>Recommended</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Python</strong></td><td>3.10+</td><td>3.12</td></tr>
+          <tr><td><strong>Node.js</strong></td><td>16+</td><td>20 LTS</td></tr>
+          <tr><td><strong>npm</strong></td><td>8+</td><td>10+</td></tr>
+          <tr><td><strong>Database</strong></td><td>SQLite 3 (built-in)</td><td>PostgreSQL 14+</td></tr>
+          <tr><td><strong>RAM</strong></td><td>512 MB</td><td>2 GB+</td></tr>
+          <tr><td><strong>OS</strong></td><td>Windows / Linux / macOS</td><td>Ubuntu 22.04 LTS</td></tr>
+        </tbody>
+      </table>
+      <div class="alert alert-info">
+        <div class="alert-icon">💡</div>
+        <div class="alert-body">
+          <strong>SQLite included!</strong>
+          No separate database server needed. SQLite is bundled with Python and works out-of-the-box. Switch to PostgreSQL anytime for production.
+        </div>
+      </div>
+    </section>
+
+    <!-- Installation -->
+    <section id="installation">
+      <h2>🚀 Installation</h2>
+
+      <h3>Method 1 — Automated (Recommended)</h3>
+      <p>One command does everything:</p>
+      <pre><code><span class="cmt"># Clone / extract the project, then:</span>
+<span class="cmd">python install.py</span></code></pre>
+      <p>The installer will:</p>
+      <ol class="steps">
+        <li><div class="step-body"><div class="step-title">Create <code>.env</code> from template</div>Copies <code>.env.example</code> → <code>.env</code> and prompts you to review settings.</div></li>
+        <li><div class="step-body"><div class="step-title">Install Python dependencies</div>Runs <code>pip install -r requirements.txt</code> automatically.</div></li>
+        <li><div class="step-body"><div class="step-title">Prepare the database</div>Runs all Django migrations. Works with SQLite (default) or PostgreSQL.</div></li>
+        <li><div class="step-body"><div class="step-title">Create admin account</div>Creates <code>admin</code> user with password <code>admin123</code>.</div></li>
+        <li><div class="step-body"><div class="step-title">Load demo data</div>Populates with projects, tasks, evaluations, and notifications.</div></li>
+        <li><div class="step-body"><div class="step-title">Set up frontend</div>Runs <code>npm install</code> for the Vue.js frontend.</div></li>
+      </ol>
+
+      <h3>Method 2 — Manual</h3>
+      <h4>Step 1 — Backend Setup</h4>
+      <pre><code><span class="cmt"># 1. Create & activate a virtual environment</span>
+<span class="cmd">python -m venv venv</span>
+<span class="cmd">venv\Scripts\activate</span>          <span class="cmt"># Windows</span>
+<span class="cmd">source venv/bin/activate</span>       <span class="cmt"># macOS / Linux</span>
+
+<span class="cmt"># 2. Install dependencies</span>
+<span class="cmd">pip install -r requirements.txt</span>
+
+<span class="cmt"># 3. Create .env file</span>
+<span class="cmd">copy .env.example .env</span>         <span class="cmt"># Windows</span>
+<span class="cmd">cp .env.example .env</span>           <span class="cmt"># macOS / Linux</span>
+
+<span class="cmt"># 4. Run database migrations</span>
+<span class="cmd">python manage.py migrate</span>
+
+<span class="cmt"># 5. Create admin user</span>
+<span class="cmd">python manage.py createsuperuser</span>
+
+<span class="cmt"># 6. Load demo data (optional)</span>
+<span class="cmd">python demo_data.py</span>
+
+<span class="cmt"># 7. Start backend server</span>
+<span class="cmd">python manage.py runserver</span></code></pre>
+
+      <h4>Step 2 — Frontend Setup</h4>
+      <pre><code><span class="cmd">cd frontend</span>
+<span class="cmd">npm install</span>
+<span class="cmd">npm run dev</span>     <span class="cmt"># Development server</span>
+<span class="cmt"># or:</span>
+<span class="cmd">npm run build</span>   <span class="cmt"># Production build → output in dist/</span></code></pre>
+
+      <div class="alert alert-success">
+        <div class="alert-icon">✅</div>
+        <div class="alert-body">
+          <strong>Done! Open your browser:</strong>
+          Frontend: <code>http://localhost:5173</code> &nbsp;|&nbsp; Backend API: <code>http://localhost:3535</code> &nbsp;|&nbsp; Admin: <code>http://localhost:3535/admin</code>
+        </div>
+      </div>
+    </section>
+
+    <!-- Configuration -->
+    <section id="configuration">
+      <h2>🔧 Configuration</h2>
+      <p>All configuration is done in the <code>.env</code> file in the project root.</p>
+    </section>
+
+    <!-- Env Vars -->
+    <section id="env-vars">
+      <h2>🔑 Environment Variables Reference</h2>
+      <table>
+        <thead><tr><th>Variable</th><th>Default</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>SECRET_KEY</code></td><td><em>insecure key</em></td><td>Django secret key. <strong>Must change in production.</strong> Generate at <a href="https://djecrety.ir" target="_blank">djecrety.ir</a></td></tr>
+          <tr><td><code>DEBUG</code></td><td><code>True</code></td><td>Set <code>False</code> in production to disable debug mode and error pages.</td></tr>
+          <tr><td><code>ALLOWED_HOSTS</code></td><td><code>*</code></td><td>Comma-separated. In production: <code>yourdomain.com,www.yourdomain.com</code></td></tr>
+          <tr><td><code>DB_ENGINE</code></td><td><code>sqlite</code></td><td>Database backend: <code>sqlite</code> or <code>postgresql</code></td></tr>
+          <tr><td><code>POSTGRES_DB</code></td><td><code>sentry_pm</code></td><td>PostgreSQL database name (only if DB_ENGINE=postgresql)</td></tr>
+          <tr><td><code>POSTGRES_USER</code></td><td><code>postgres</code></td><td>PostgreSQL username</td></tr>
+          <tr><td><code>POSTGRES_PASSWORD</code></td><td><em>empty</em></td><td>PostgreSQL password</td></tr>
+          <tr><td><code>POSTGRES_HOST</code></td><td><code>127.0.0.1</code></td><td>PostgreSQL host address</td></tr>
+          <tr><td><code>POSTGRES_PORT</code></td><td><code>5432</code></td><td>PostgreSQL port</td></tr>
+          <tr><td><code>MEDIA_ROOT</code></td><td><code>media/</code></td><td>Directory for uploaded files (avatars, attachments)</td></tr>
+          <tr><td><code>CORS_ALLOWED_ORIGINS</code></td><td><em>empty</em></td><td>Comma-separated allowed CORS origins for production</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Demo -->
+    <section id="demo">
+      <h2>🎭 Demo Accounts</h2>
+      <p>After running <code>python demo_data.py</code>, the following accounts are available:</p>
+      <div class="creds-box">
+        <div class="cred-card">
+          <div class="cred-role">👑 Super Admin</div>
+          <div class="cred-row"><span class="cred-key">Username</span><span class="cred-val">admin</span></div>
+          <div class="cred-row"><span class="cred-key">Password</span><span class="cred-val">admin123</span></div>
+          <div class="cred-row"><span class="cred-key">Access</span><span class="cred-val">Full access</span></div>
+        </div>
+        <div class="cred-card">
+          <div class="cred-role">👨‍💻 Developer</div>
+          <div class="cred-row"><span class="cred-key">Username</span><span class="cred-val">devuser</span></div>
+          <div class="cred-row"><span class="cred-key">Password</span><span class="cred-val">dev12345</span></div>
+          <div class="cred-row"><span class="cred-key">Access</span><span class="cred-val">Standard user</span></div>
+        </div>
+        <div class="cred-card">
+          <div class="cred-role">👩‍💻 Developer</div>
+          <div class="cred-row"><span class="cred-key">Username</span><span class="cred-val">sarah</span></div>
+          <div class="cred-row"><span class="cred-key">Password</span><span class="cred-val">sara12345</span></div>
+          <div class="cred-row"><span class="cred-key">Access</span><span class="cred-val">Standard user</span></div>
+        </div>
+        <div class="cred-card">
+          <div class="cred-role">👨‍💻 Developer</div>
+          <div class="cred-row"><span class="cred-key">Username</span><span class="cred-val">omar</span></div>
+          <div class="cred-row"><span class="cred-key">Password</span><span class="cred-val">omar12345</span></div>
+          <div class="cred-row"><span class="cred-key">Access</span><span class="cred-val">Standard user</span></div>
+        </div>
+      </div>
+      <div class="alert alert-warning">
+        <div class="alert-icon">⚠️</div>
+        <div class="alert-body">
+          <strong>Change demo passwords in production!</strong>
+          These are for demonstration only. Always set strong passwords before deploying publicly.
+        </div>
+      </div>
+    </section>
+
+    <!-- Features -->
+    <section id="features">
+      <h2>✨ Complete Feature List</h2>
+
+      <h3 id="error-tracking">🐛 Error Tracking &amp; Monitoring</h3>
+      <div class="feature-grid">
+        <div class="feature-item"><div class="fi-icon">🔍</div><div><div class="fi-title">Real-time Error Capture</div><div class="fi-desc">Capture JavaScript exceptions and stack traces automatically</div></div></div>
+        <div class="feature-item"><div class="fi-icon">🌐</div><div><div class="fi-title">Network Request Monitoring</div><div class="fi-desc">Track failed API calls, timeouts, and HTTP errors</div></div></div>
+        <div class="feature-item"><div class="fi-icon">📽️</div><div><div class="fi-title">Session Replay</div><div class="fi-desc">Reproduce user sessions to debug issues visually</div></div></div>
+        <div class="feature-item"><div class="fi-icon">📊</div><div><div class="fi-title">Error Analytics Dashboard</div><div class="fi-desc">Charts, trends, and error frequency analysis</div></div></div>
+        <div class="feature-item"><div class="fi-icon">🏷️</div><div><div class="fi-title">Issue Management</div><div class="fi-desc">Mark issues as resolved, assign to team members</div></div></div>
+        <div class="feature-item"><div class="fi-icon">🔗</div><div><div class="fi-title">Client SDK</div><div class="fi-desc">Drop-in JavaScript SDK for any web app</div></div></div>
+      </div>
+
+      <h3 id="project-mgmt">📊 Project Management</h3>
+      <div class="feature-grid">
+        <div class="feature-item"><div class="fi-icon">📋</div><div><div class="fi-title">Kanban Board</div><div class="fi-desc">Drag-and-drop task management with custom columns</div></div></div>
+        <div class="feature-item"><div class="fi-icon">📦</div><div><div class="fi-title">Sprint Backlog</div><div class="fi-desc">Agile sprint planning with burndown charts</div></div></div>
+        <div class="feature-item"><div class="fi-icon">📈</div><div><div class="fi-title">Reports &amp; Analytics</div><div class="fi-desc">Velocity, burndown/burnup, workload, epic progress</div></div></div>
+        <div class="feature-item"><div class="fi-icon">💬</div><div><div class="fi-title">Real-time Team Chat</div><div class="fi-desc">WebSocket-based project chat with file attachments</div></div></div>
+        <div class="feature-item"><div class="fi-icon">📝</div><div><div class="fi-title">Documentation Wiki</div><div class="fi-desc">Markdown-based docs with revision history and PDF export</div></div></div>
+        <div class="feature-item"><div class="fi-icon">👥</div><div><div class="fi-title">Team Members</div><div class="fi-desc">Role-based project access (Admin, Member, Viewer)</div></div></div>
+        <div class="feature-item"><div class="fi-icon">🎯</div><div><div class="fi-title">Epics</div><div class="fi-desc">Group related tasks into feature-level epics</div></div></div>
+        <div class="feature-item"><div class="fi-icon">🔔</div><div><div class="fi-title">Smart Notifications</div><div class="fi-desc">Real-time WebSocket notifications for all events</div></div></div>
+      </div>
+
+      <h3 id="evaluations">⭐ Developer Evaluations</h3>
+      <div class="feature-grid">
+        <div class="feature-item"><div class="fi-icon">📅</div><div><div class="fi-title">Evaluation Periods</div><div class="fi-desc">Create quarterly or monthly evaluation cycles</div></div></div>
+        <div class="feature-item"><div class="fi-icon">🏆</div><div><div class="fi-title">Leaderboard</div><div class="fi-desc">Team performance rankings with gamification</div></div></div>
+        <div class="feature-item"><div class="fi-icon">📊</div><div><div class="fi-title">Score Distribution</div><div class="fi-desc">Visual breakdown of performance ranges</div></div></div>
+        <div class="feature-item"><div class="fi-icon">👤</div><div><div class="fi-title">My Performance</div><div class="fi-desc">Personal performance view for each developer</div></div></div>
+      </div>
+
+      <h3>🛡️ Security &amp; Admin</h3>
+      <div class="feature-grid">
+        <div class="feature-item"><div class="fi-icon">🔐</div><div><div class="fi-title">JWT Authentication</div><div class="fi-desc">Secure token-based auth with refresh token rotation</div></div></div>
+        <div class="feature-item"><div class="fi-icon">🔑</div><div><div class="fi-title">Permission Groups</div><div class="fi-desc">Fine-grained role and permission management</div></div></div>
+        <div class="feature-item"><div class="fi-icon">⏱️</div><div><div class="fi-title">Session Timeout</div><div class="fi-desc">Configurable auto-logout for security</div></div></div>
+        <div class="feature-item"><div class="fi-icon">🌍</div><div><div class="fi-title">Bilingual UI (AR/EN)</div><div class="fi-desc">Full RTL/LTR support with instant language switching</div></div></div>
+        <div class="feature-item"><div class="fi-icon">🌙</div><div><div class="fi-title">Dark Mode</div><div class="fi-desc">Premium dark-only Vibrant-Glass design system</div></div></div>
+        <div class="feature-item"><div class="fi-icon">🧹</div><div><div class="fi-title">Database Maintenance</div><div class="fi-desc">Built-in cleanup tools to optimize database size</div></div></div>
+      </div>
+    </section>
+
+    <!-- Offline Deployment -->
+    <section id="offline">
+      <h2>🖥️ Offline Usage (Local Network)</h2>
+      <p>Sentry PM can run entirely on your local machine or company intranet — <strong>no internet connection required</strong>.</p>
+
+      <h3>Who is this for?</h3>
+      <div class="feature-grid">
+        <div class="feature-item"><div class="fi-icon">🏢</div><div><div class="fi-title">Company Intranet</div><div class="fi-desc">Run for your team on a local server accessible via LAN</div></div></div>
+        <div class="feature-item"><div class="fi-icon">💻</div><div><div class="fi-title">Single Developer</div><div class="fi-desc">Use on your own machine for personal projects</div></div></div>
+        <div class="feature-item"><div class="fi-icon">🔒</div><div><div class="fi-title">High-Security Environments</div><div class="fi-desc">Banks, hospitals, government — all data stays on-premises</div></div></div>
+        <div class="feature-item"><div class="fi-icon">🧪</div><div><div class="fi-title">Testing & Development</div><div class="fi-desc">Develop and test before going live without exposing data</div></div></div>
+      </div>
+
+      <h3>Setup for Local Network (LAN)</h3>
+      <p>To make Sentry PM accessible to all devices on your network:</p>
+      <pre><code><span class="cmt"># Step 1: Find your local IP address</span>
+<span class="cmd">ipconfig</span>          <span class="cmt"># Windows — look for IPv4 (e.g. 192.168.1.100)</span>
+<span class="cmd">hostname -I</span>       <span class="cmt"># Linux/Mac</span>
+
+<span class="cmt"># Step 2: Run backend on all interfaces</span>
+<span class="cmd">python manage.py runserver 0.0.0.0:3535</span>
+
+<span class="cmt"># Step 3: Update .env</span>
+ALLOWED_HOSTS=192.168.1.100,localhost
+
+<span class="cmt"># Step 4: Run frontend</span>
+<span class="cmd">cd frontend && npm run dev -- --host 0.0.0.0</span></code></pre>
+
+      <div class="alert alert-success">
+        <div class="alert-icon">✅</div>
+        <div class="alert-body">
+          <strong>Any device on the same Wi-Fi can now access:</strong>
+          <code>http://192.168.1.100:5173</code> — replace the IP with your machine's IP address.
+        </div>
+      </div>
+
+      <h3>All Features Work Offline</h3>
+      <table>
+        <thead><tr><th>Feature</th><th>Works Offline?</th><th>Note</th></tr></thead>
+        <tbody>
+          <tr><td>Kanban Board</td><td>✅ Yes</td><td>Full functionality</td></tr>
+          <tr><td>Error Tracking</td><td>✅ Yes</td><td>Monitors your local apps</td></tr>
+          <tr><td>Real-time Chat</td><td>✅ Yes</td><td>Via local WebSocket</td></tr>
+          <tr><td>Notifications</td><td>✅ Yes</td><td>Via local WebSocket</td></tr>
+          <tr><td>Reports & Charts</td><td>✅ Yes</td><td>Data stored locally</td></tr>
+          <tr><td>Session Replay</td><td>✅ Yes</td><td>Stored in local DB</td></tr>
+          <tr><td>Google Fonts</td><td>⚠️ Optional</td><td>Requires internet; falls back to system font</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Online Deployment -->
+    <section id="online">
+      <h2>🌐 Online Deployment (Production)</h2>
+      <p>To make Sentry PM accessible from anywhere on the internet, choose one of these deployment options:</p>
+
+      <h3>Option 1 — Railway.app (Easiest, Recommended)</h3>
+      <ol class="steps">
+        <li><div class="step-body"><div class="step-title">Push code to GitHub</div>Create a private repository and push the source code.</div></li>
+        <li><div class="step-body"><div class="step-title">Connect to Railway</div>Go to <a href="https://railway.app" target="_blank">railway.app</a> → New Project → Deploy from GitHub.</div></li>
+        <li><div class="step-body"><div class="step-title">Add environment variables</div>Set <code>SECRET_KEY</code>, <code>DEBUG=False</code>, <code>DB_ENGINE=postgresql</code> and Railway's auto-provisioned <code>POSTGRES_*</code> vars.</div></li>
+        <li><div class="step-body"><div class="step-title">Deploy and get your URL</div>Railway provides a public URL like <code>https://sentry-pm-xxxx.railway.app</code> in seconds.</div></li>
+      </ol>
+
+      <h3>Option 2 — VPS (DigitalOcean / Hetzner / AWS)</h3>
+      <pre><code><span class="cmt"># 1. Connect to your server</span>
+<span class="cmd">ssh user@your-server-ip</span>
+
+<span class="cmt"># 2. Install Python, Node.js, and Nginx</span>
+<span class="cmd">sudo apt update && sudo apt install python3 python3-pip nodejs npm nginx -y</span>
+
+<span class="cmt"># 3. Upload and install the project</span>
+<span class="cmd">git clone your-repo /var/www/sentry-pm</span>
+<span class="cmd">cd /var/www/sentry-pm && python install.py</span>
+
+<span class="cmt"># 4. Build frontend for production</span>
+<span class="cmd">cd frontend && npm run build</span>
+
+<span class="cmt"># 5. Run backend with Daphne (ASGI)</span>
+<span class="cmd">daphne -b 0.0.0.0 -p 3535 config.asgi:application &</span>
+
+<span class="cmt"># 6. Configure Nginx to proxy requests</span>
+<span class="cmt"># (see full Nginx config in the appendix below)</span></code></pre>
+
+      <h3>Option 3 — Render.com (Free tier available)</h3>
+      <p>Render supports Python/Django apps natively. Connect your GitHub repo, set environment variables, and deploy with zero configuration.</p>
+
+      <div class="alert alert-warning">
+        <div class="alert-icon">⚠️</div>
+        <div class="alert-body">
+          <strong>WebSocket requirement:</strong>
+          Real-time features (chat, notifications) require an ASGI server (Daphne). Shared hosting that only supports WSGI will work but without real-time features.
+        </div>
+      </div>
+
+      <h3>Production .env Checklist</h3>
+      <pre><code><span class="cmt"># Required changes for production:</span>
+<span class="kw">SECRET_KEY</span>=<span class="str">your-long-random-secret-key-here</span>   <span class="cmt"># Never use the default!</span>
+<span class="kw">DEBUG</span>=<span class="str">False</span>
+<span class="kw">ALLOWED_HOSTS</span>=<span class="str">yourdomain.com,www.yourdomain.com</span>
+<span class="kw">DB_ENGINE</span>=<span class="str">postgresql</span>
+<span class="kw">POSTGRES_DB</span>=<span class="str">sentry_pm_prod</span>
+<span class="kw">POSTGRES_USER</span>=<span class="str">sentry_user</span>
+<span class="kw">POSTGRES_PASSWORD</span>=<span class="str">strong_password_here</span>
+<span class="kw">POSTGRES_HOST</span>=<span class="str">db.yourdomain.com</span>
+<span class="kw">CORS_ALLOWED_ORIGINS</span>=<span class="str">https://yourdomain.com</span></code></pre>
+    </section>
+
+    <!-- SDK Integration -->
+    <section id="sdk">
+      <h2>🔗 SDK Integration — Monitor Any App</h2>
+      <p>The included <code>client_sdk.js</code> is a drop-in JavaScript library. Add it to any web application and it will automatically send all errors, network failures, and session recordings to your Sentry PM instance.</p>
+
+      <div class="alert alert-info">
+        <div class="alert-icon">💡</div>
+        <div class="alert-body">
+          <strong>Works with any tech stack:</strong>
+          React, Vue.js, Angular, plain HTML, WordPress, Shopify — any web app running JavaScript.
+        </div>
+      </div>
+
+      <h3>Step 1 — Add the scripts to your app's HTML</h3>
+      <pre><code><span class="cmt">&lt;!-- In the &lt;head&gt; of every page you want to monitor --&gt;</span>
+&lt;script src="https://cdn.jsdelivr.net/npm/rrweb@latest/dist/rrweb.min.js"&gt;&lt;/script&gt;
+&lt;script src="https://YOUR-SENTRY-PM-URL/static/client_sdk.js"&gt;&lt;/script&gt;</code></pre>
+
+      <h3>Step 2 — Initialize the SDK</h3>
+      <pre><code>&lt;script&gt;
+  <span class="cmt">// Add this after the scripts above</span>
+  window.addEventListener('load', function() {
+    Tracker.init({
+      trackerUrl: <span class="str">'https://YOUR-SENTRY-PM-URL'</span>,  <span class="cmt">// Your Sentry PM server URL</span>
+      project:    <span class="str">'My Application Name'</span>,          <span class="cmt">// Must match a project in Sentry PM</span>
+      userId:     <span class="str">'user_123'</span>                       <span class="cmt">// Optional: logged-in user ID</span>
+    });
+  });
+&lt;/script&gt;</code></pre>
+
+      <h3>That's it! What gets monitored automatically:</h3>
+      <table>
+        <thead><tr><th>Event Type</th><th>How It's Captured</th><th>Where to See It</th></tr></thead>
+        <tbody>
+          <tr><td>JavaScript Errors</td><td>Automatically via <code>window.onerror</code></td><td>Issues → Exceptions tab</td></tr>
+          <tr><td>Unhandled Promises</td><td>Automatically via <code>unhandledrejection</code></td><td>Issues → Exceptions tab</td></tr>
+          <tr><td>Network Failures (400/500)</td><td>Fetch &amp; XHR interception</td><td>Issues → Network Registry</td></tr>
+          <tr><td>Console errors</td><td>Intercepts <code>console.error()</code></td><td>Sent with each error report</td></tr>
+          <tr><td>Session Recording</td><td>rrweb records DOM changes</td><td>Issues → Session Replay button</td></tr>
+          <tr><td>Click Breadcrumbs</td><td>DOM click listener</td><td>Sent with each error report</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Integration Examples</h3>
+      <h4>React Application</h4>
+      <pre><code><span class="cmt">// In your App.jsx or main index.jsx</span>
+<span class="kw">import</span> { useEffect } <span class="kw">from</span> <span class="str">'react'</span>;
+
+<span class="kw">function</span> App() {
+  useEffect(() => {
+    <span class="kw">if</span> (window.Tracker) {
+      window.Tracker.init({
+        trackerUrl: process.env.REACT_APP_SENTRY_PM_URL,
+        project:    <span class="str">'My React App'</span>,
+        userId:     currentUser?.id || <span class="str">'guest'</span>
+      });
+    }
+  }, []);
+}</code></pre>
+
+      <h4>Vue.js Application</h4>
+      <pre><code><span class="cmt">// In main.js</span>
+app.config.errorHandler = (err) => {
+  window.Tracker?.captureException(err);
+};
+window.Tracker?.init({
+  trackerUrl: import.meta.env.VITE_SENTRY_PM_URL,
+  project:    <span class="str">'Vue Dashboard'</span>,
+  userId:     store.getters.currentUser?.id
+});</code></pre>
+
+      <h4>Plain HTML / WordPress / Any CMS</h4>
+      <pre><code><span class="cmt">&lt;!-- Paste this in your site's header --&gt;</span>
+&lt;script src="https://cdn.jsdelivr.net/npm/rrweb@latest/dist/rrweb.min.js"&gt;&lt;/script&gt;
+&lt;script src="https://your-sentry-pm.com/static/client_sdk.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+  Tracker.init({
+    trackerUrl: <span class="str">'https://your-sentry-pm.com'</span>,
+    project:    <span class="str">'Company Website'</span>,
+    userId:     <span class="str">'visitor'</span>
+  });
+&lt;/script&gt;</code></pre>
+
+      <h3>How the Data Flows</h3>
+      <div class="card" style="font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--text2); line-height:2;">
+        Your App (Browser)<br>
+        &nbsp;&nbsp;&nbsp;↓ JavaScript error occurs<br>
+        &nbsp;&nbsp;&nbsp;↓ SDK captures: error + stack + last 20s session recording<br>
+        &nbsp;&nbsp;&nbsp;↓ POST /api/capture/ → <strong style="color:var(--accent)">Sentry PM Server</strong><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↓ Saved to database<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↓ Visible in Issues dashboard<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↓ Developer clicks "Replay" → watches what user did before the crash
+      </div>
+
+      <h3>Manual Error Capture</h3>
+      <p>You can also capture errors programmatically from your own catch blocks:</p>
+      <pre><code><span class="kw">try</span> {
+  riskyOperation();
+} <span class="kw">catch</span> (error) {
+  window.Tracker?.captureException(error); <span class="cmt">// Send to Sentry PM manually</span>
+  <span class="kw">throw</span> error; <span class="cmt">// Re-throw if needed</span>
+}</code></pre>
+    </section>
+
+    <!-- FAQ -->
+    <section id="faq">
+      <h2>❓ Frequently Asked Questions</h2>
+
+      <div class="faq-item open">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">
+          Can I use SQLite instead of PostgreSQL? <span class="faq-arrow">▼</span>
+        </div>
+        <div class="faq-a">Yes! Open <code>.env</code> and set <code>DB_ENGINE=sqlite</code>. SQLite is the default and requires no additional setup. It's great for development and small deployments. For production on live servers, we recommend PostgreSQL for performance and concurrency.</div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">
+          How do I run the backend and frontend together? <span class="faq-arrow">▼</span>
+        </div>
+        <div class="faq-a">Open two terminal windows. In the first: <code>python manage.py runserver</code>. In the second: <code>cd frontend &amp;&amp; npm run dev</code>. The Vue.js frontend is pre-configured to proxy API requests to <code>localhost:3535</code>.</div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">
+          How do I integrate the Error Tracking SDK into my app? <span class="faq-arrow">▼</span>
+        </div>
+        <div class="faq-a">Copy <code>client_sdk.js</code> from the project root and add it to your web app's HTML. Configure it with your Sentry PM URL and project key. The SDK automatically captures JavaScript errors, network failures, and console errors.</div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">
+          Does it work in Arabic (RTL) mode? <span class="faq-arrow">▼</span>
+        </div>
+        <div class="faq-a">Yes, fully! The platform includes complete Arabic translation and RTL layout support. Users can switch between Arabic and English from the top navigation bar. All components, animations, and layouts are designed to work in both directions.</div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">
+          Can I deploy this on shared hosting? <span class="faq-arrow">▼</span>
+        </div>
+        <div class="faq-a">The WebSocket (real-time chat/notifications) features require an ASGI server (Daphne/Uvicorn), which is not supported by traditional shared hosting. We recommend a VPS, cloud instance (DigitalOcean, AWS EC2), or platforms like Railway or Render.</div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">
+          How do I change the admin password? <span class="faq-arrow">▼</span>
+        </div>
+        <div class="faq-a">Log in as admin and go to <strong>Settings → Security &amp; Account</strong> to change the password from the UI. Alternatively, use the command line: <code>python manage.py changepassword admin</code></div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">
+          How do I reset the demo data? <span class="faq-arrow">▼</span>
+        </div>
+        <div class="faq-a">Run <code>python reset_demo.py</code> and type <code>RESET</code> when prompted. This clears all projects, tasks, and evaluations, then reloads the original demo data. User accounts are preserved.</div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">
+          Can I customize the color theme? <span class="faq-arrow">▼</span>
+        </div>
+        <div class="faq-a">Yes! In <strong>Settings → Preferences</strong>, users can choose from 6 color themes (Indigo, Emerald, Rose, Amber, Ocean, and the default Omnia). The settings are saved per-user in their profile.</div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">
+          Is the source code included? <span class="faq-arrow">▼</span>
+        </div>
+        <div class="faq-a">Yes, the complete source code for both backend (Django) and frontend (Vue.js) is included. You can customize, extend, and white-label the application for your clients.</div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">
+          What Python version is required? <span class="faq-arrow">▼</span>
+        </div>
+        <div class="faq-a">Python 3.10 or higher is required. We recommend Python 3.12 for the best performance and latest security patches. Check your version with <code>python --version</code>.</div>
+      </div>
+    </section>
+
+    <!-- Changelog -->
+    <section id="changelog">
+      <h2>📝 Changelog</h2>
+
+      <div class="changelog-item">
+        <div class="changelog-ver">v 1.0.0</div>
+        <div class="changelog-body">
+          <div class="changelog-date">April 2026 — Initial Release</div>
+          <ul class="changelog-list">
+            <li>Full-featured Kanban board with drag-and-drop</li>
+            <li>Sprint Backlog with agile reports (burndown, burnup, velocity)</li>
+            <li>Real-time error tracking with JavaScript SDK</li>
+            <li>Session replay for debugging user interactions</li>
+            <li>Network request failure monitoring</li>
+            <li>Real-time WebSocket team chat</li>
+            <li>Markdown documentation wiki with PDF export</li>
+            <li>Developer evaluation system with leaderboard</li>
+            <li>Permission groups &amp; role management</li>
+            <li>Full Arabic (RTL) &amp; English (LTR) support</li>
+            <li>JWT authentication with session timeout</li>
+            <li>SQLite &amp; PostgreSQL database support</li>
+            <li>Dark mode Vibrant-Glass design system</li>
+            <li>6 color themes</li>
+            <li>Customizable font families</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Support -->
+    <section id="support">
+      <h2>💬 Support</h2>
+      <div class="card">
+        <h3 style="margin-top:0">Getting Help</h3>
+        <p>If you experience any issues not covered in this documentation, please use the item's comment section on CodeCanyon to ask your question. Include:</p>
+        <ul style="color:var(--text2); padding-left:20px; font-size:15px;">
+          <li style="margin-bottom:8px">Your Python version (<code>python --version</code>)</li>
+          <li style="margin-bottom:8px">Your operating system</li>
+          <li style="margin-bottom:8px">The full error message from the console</li>
+          <li>Steps to reproduce the issue</li>
+        </ul>
+      </div>
+      <div class="alert alert-info">
+        <div class="alert-icon">ℹ️</div>
+        <div class="alert-body">
+          <strong>Support includes:</strong>
+          Bug fixes, answering questions about the item's features, and assistance with included functionality. Does not include customization, installation on your server, or third-party integrations.
+        </div>
+      </div>
+      <p style="margin-top:24px; font-size:13px; color:var(--text3); text-align:center;">
+        Sentry PM v1.0.0 &nbsp;·&nbsp; Built with Django 5 &amp; Vue.js 3 &nbsp;·&nbsp; © 2026 All Rights Reserved
+      </p>
+    </section>
+
+  </main>
+</div>
+
+<script>
+// Highlight active nav link on scroll
+const sections = document.querySelectorAll('section[id]');
+const navLinks  = document.querySelectorAll('.nav a');
+const observer  = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      navLinks.forEach(l => l.classList.remove('active'));
+      const active = document.querySelector(`.nav a[href="#${entry.target.id}"]`);
+      if (active) active.classList.add('active');
+    }
+  });
+}, { rootMargin: '-30% 0px -70% 0px' });
+sections.forEach(s => observer.observe(s));
+</script>
+
+</body>
+</html>

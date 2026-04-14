@@ -1,0 +1,77 @@
+# ── Python ────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.pyd
+*.pyo
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# ── Virtual Environments ───────────────────────────────────────
+venv/
+env/
+ENV/
+.venv/
+.env/
+
+# ── Django ────────────────────────────────────────────────────
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+/media/
+/staticfiles/
+/static/
+
+# ── Environment Files ──────────────────────────────────────────
+.env
+# Keep .env.example (template for buyers)
+!.env.example
+
+# ── Node.js ───────────────────────────────────────────────────
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# ── Vue Build Output ───────────────────────────────────────────
+frontend/dist/
+frontend/.vite/
+
+# ── IDE ───────────────────────────────────────────────────────
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# ── Development Scripts (not included in release) ─────────────
+analyze_db.py
+clean_ar.py
+fix_ar_final.py
+gen_ar_full.py
+reassemble_ar.py
+debug_check_db.py
+migrate_statuses.py
+update_pending_status.py
+replace_colors.cjs
+
+# ── Hypothesis (property-based testing artifacts) ─────────────
+.hypothesis/
+
+# ── SQLite WAL files ──────────────────────────────────────────
+db.sqlite3-shm
+db.sqlite3-wal
+
+# ── Kiro IDE ──────────────────────────────────────────────────
+.kiro/
+
+# ── Frontend (separate repo) ──────────────────────────────────
+frontend/

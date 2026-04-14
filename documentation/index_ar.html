@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sentry PM — التوثيق</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0e1a; --bg2: #0f1629; --bg3: #141b2e;
+  --accent: #6366f1; --accent2: #8b5cf6; --accent3: #06b6d4;
+  --green: #10b981; --yellow: #f59e0b; --red: #ef4444;
+  --text: #e2e8f0; --text2: #94a3b8; --text3: #64748b;
+  --border: rgba(99,102,241,0.15); --glass: rgba(255,255,255,0.03);
+  --radius: 12px; --radius-lg: 20px;
+}
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Cairo', sans-serif; background: var(--bg);
+  color: var(--text); line-height: 1.7; min-height: 100vh;
+  background-image: radial-gradient(ellipse 80% 60% at 50% -20%, rgba(99,102,241,0.12), transparent);
+}
+
+/* ── Layout ── */
+.layout { display: flex; min-height: 100vh; }
+.sidebar {
+  width: 260px; flex-shrink: 0; position: sticky; top: 0; height: 100vh;
+  overflow-y: auto; background: var(--bg2);
+  border-left: 1px solid var(--border); padding: 24px 0;
+}
+.main { flex: 1; max-width: 900px; padding: 48px 56px; overflow-x: hidden; }
+
+/* ── Sidebar ── */
+.logo { padding: 0 24px 32px; border-bottom: 1px solid var(--border); }
+.logo-badge {
+  display: inline-flex; align-items: center; gap: 10px;
+  font-size: 18px; font-weight: 800; color: var(--text);
+}
+.logo-icon {
+  width: 38px; height: 38px; border-radius: 10px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+}
+.logo-sub { font-size: 11px; font-weight: 400; color: var(--text3); margin-top: 4px; }
+.nav { padding: 20px 0; }
+.nav-section { padding: 0 24px 8px; font-size: 11px; font-weight: 700; color: var(--text3);
+  text-transform: uppercase; letter-spacing: 1.5px; }
+.nav a {
+  display: flex; align-items: center; gap: 10px; padding: 9px 24px;
+  color: var(--text2); text-decoration: none; font-size: 14px;
+  transition: all 0.2s; border-right: 2px solid transparent;
+}
+.nav a:hover { color: var(--text); background: var(--glass); border-right-color: var(--accent); }
+.nav a.active { color: var(--accent); background: rgba(99,102,241,0.08); border-right-color: var(--accent); font-weight: 700; }
+.nav-icon { font-size: 15px; width: 18px; text-align: center; }
+
+/* ── Content ── */
+h1 { font-size: 36px; font-weight: 800; line-height: 1.4; margin-bottom: 16px;
+  background: linear-gradient(135deg, var(--text) 0%, var(--accent) 100%);
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+h2 { font-size: 24px; font-weight: 700; color: var(--text); margin: 48px 0 16px;
+  padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+h3 { font-size: 17px; font-weight: 700; color: var(--text); margin: 28px 0 12px; }
+h4 { font-size: 14px; font-weight: 700; color: var(--text2); margin: 20px 0 8px; }
+p { color: var(--text2); margin-bottom: 16px; font-size: 15.5px; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ── Badges & Chips ── */
+.badges { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; }
+.badge {
+  padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 700;
+  border: 1px solid; display: inline-flex; align-items: center; gap: 5px;
+}
+.badge-blue  { background: rgba(99,102,241,0.15); color: #818cf8; border-color: rgba(99,102,241,0.3); }
+.badge-green { background: rgba(16,185,129,0.15);  color: #34d399; border-color: rgba(16,185,129,0.3); }
+.badge-cyan  { background: rgba(6,182,212,0.15);  color: #22d3ee; border-color: rgba(6,182,212,0.3); }
+.badge-yellow{ background: rgba(245,158,11,0.15); color: #fbbf24; border-color: rgba(245,158,11,0.3); }
+
+/* ── Cards ── */
+.card {
+  background: var(--glass); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 24px; margin-bottom: 20px;
+  backdrop-filter: blur(10px);
+}
+.card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin: 20px 0; }
+.stat-card {
+  background: var(--glass); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 20px; text-align: center;
+}
+.stat-card .val { font-size: 28px; font-weight: 800; color: var(--accent); }
+.stat-card .lbl { font-size: 13px; font-weight: 600; color: var(--text3); margin-top: 4px; }
+
+/* ── Code ── */
+pre, code {
+  font-family: 'JetBrains Mono', monospace; font-size: 13px; direction: ltr; text-align: left;
+}
+pre {
+  background: #0d1117; border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 20px; overflow-x: auto; margin: 16px 0; position: relative;
+}
+code { background: rgba(99,102,241,0.12); padding: 2px 6px; border-radius: 4px; font-size: 13px; color: #a5b4fc; }
+pre code { background: none; padding: 0; color: #e2e8f0; font-size: 13px; }
+.cmd { color: #34d399; }
+.cmt { color: #64748b; font-style: italic; }
+.str { color: #fbbf24; }
+.kw  { color: #818cf8; }
+
+/* ── Steps ── */
+.steps { counter-reset: step-counter; list-style: none; }
+.steps li {
+  counter-increment: step-counter; display: flex; gap: 16px;
+  margin-bottom: 24px; position: relative;
+}
+.steps li::before {
+  content: counter(step-counter); min-width: 32px; height: 32px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 13px; color: white; flex-shrink: 0; margin-top: 2px;
+}
+.steps li .step-body { flex: 1; }
+.steps li .step-title { font-weight: 700; color: var(--text); margin-bottom: 6px; font-size: 15px; }
+
+/* ── Alerts ── */
+.alert { border-radius: var(--radius); padding: 16px 20px; margin: 20px 0; display: flex; gap: 12px; }
+.alert-icon { font-size: 18px; flex-shrink: 0; margin-top: 2px; }
+.alert-body { font-size: 14.5px; }
+.alert-body strong { display: block; margin-bottom: 4px; font-size: 15px; font-weight: 700; }
+.alert-info    { background: rgba(6,182,212,0.08); border: 1px solid rgba(6,182,212,0.2); color: #7dd3fc; }
+.alert-success { background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.2); color: #6ee7b7; }
+.alert-warning { background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.2); color: #fcd34d; }
+.alert-danger  { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); color: #fca5a5; }
+
+/* ── Table ── */
+table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14.5px; }
+thead th { background: rgba(99,102,241,0.1); color: var(--text); font-weight: 700;
+  padding: 12px 16px; text-align: right; border-bottom: 2px solid var(--border); }
+tbody td { padding: 12px 16px; border-bottom: 1px solid var(--border); color: var(--text2); vertical-align: top; }
+tbody tr:hover td { background: var(--glass); }
+
+/* ── Feature List ── */
+.feature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 20px 0; }
+.feature-item {
+  background: var(--glass); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 14px 18px; display: flex; align-items: flex-start; gap: 12px;
+}
+.feature-item .fi-icon { font-size: 20px; flex-shrink: 0; }
+.feature-item .fi-title { font-size: 14px; font-weight: 700; color: var(--text); }
+.feature-item .fi-desc  { font-size: 12.5px; color: var(--text3); margin-top: 2px; }
+
+/* ── Credentials ── */
+.creds-box {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 20px 0;
+}
+.cred-card {
+  background: var(--glass); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 18px; position: relative; overflow: hidden;
+}
+.cred-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+}
+.cred-role { font-size: 12px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 1px; color: var(--accent); margin-bottom: 12px; }
+.cred-row  { display: flex; justify-content: space-between; margin-bottom: 6px;
+  font-size: 13.5px; }
+.cred-key  { color: var(--text3); font-weight: 600; }
+.cred-val  { font-family: 'JetBrains Mono', monospace; color: var(--text); font-weight: 500; }
+
+/* ── FAQ ── */
+.faq-item { border: 1px solid var(--border); border-radius: var(--radius);
+  margin-bottom: 8px; overflow: hidden; }
+.faq-q {
+  padding: 16px 20px; font-weight: 700; font-size: 15px; cursor: pointer;
+  display: flex; justify-content: space-between; align-items: center; color: var(--text);
+  background: var(--glass);
+}
+.faq-q:hover { background: rgba(99,102,241,0.08); }
+.faq-a { padding: 16px 20px; font-size: 14.5px; color: var(--text2);
+  border-top: 1px solid var(--border); background: var(--bg); display: none; }
+.faq-item.open .faq-a { display: block; }
+.faq-item.open .faq-arrow { transform: rotate(180deg); }
+.faq-arrow { transition: transform 0.2s; }
+
+/* ── Changelog ── */
+.changelog-item { display: flex; gap: 20px; margin-bottom: 28px; }
+.changelog-ver {
+  min-width: 80px; text-align: center;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border-radius: var(--radius); padding: 8px; font-weight: 800;
+  font-size: 14px; height: fit-content;
+}
+.changelog-body { flex: 1; }
+.changelog-date { font-size: 13px; color: var(--text3); margin-bottom: 8px; }
+.changelog-list { list-style: none; }
+.changelog-list li { font-size: 14.5px; color: var(--text2); padding: 3px 0; display: flex; align-items: flex-start; gap: 8px; }
+.changelog-list li::before { content: '←'; color: var(--accent); flex-shrink: 0; font-weight: 700; }
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg2); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .layout { flex-direction: column; }
+  .sidebar { width: 100%; height: auto; position: relative; border-left: none; border-bottom: 1px solid var(--border); }
+  .main { padding: 32px 24px; }
+  .feature-grid, .creds-box { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-badge">
+        <div class="logo-icon">🎯</div>
+        Sentry PM
+      </div>
+      <div class="logo-sub">التوثيق الإصدار 1.0.0</div>
+    </div>
+    
+    <nav class="nav">
+      <div class="nav-section" style="margin-top:16px">اللغة (Language)</div>
+      <a href="index.html" style="color:var(--accent); font-weight:700;"><span class="nav-icon">🌐</span> English (الإنجليزية)</a>
+
+      <div class="nav-section" style="margin-top:24px">ابتدأ من هنا</div>
+      <a href="#overview" class="active"><span class="nav-icon">📋</span> نظرة عامة</a>
+      <a href="#requirements"><span class="nav-icon">⚙️</span> متطلبات النظام</a>
+      <a href="#installation"><span class="nav-icon">🚀</span> التثبيت</a>
+      <a href="#configuration"><span class="nav-icon">🔧</span> الإعداد والتهيئة</a>
+      <a href="#demo"><span class="nav-icon">🎭</span> حسابات الديمو</a>
+
+      <div class="nav-section" style="margin-top:24px">الميزات المتاحة</div>
+      <a href="#features"><span class="nav-icon">✨</span> جميع الميزات</a>
+      <a href="#error-tracking"><span class="nav-icon">🐛</span> تتبع الأخطاء الحي</a>
+      <a href="#project-mgmt"><span class="nav-icon">📊</span> إدارة المشاريع</a>
+      <a href="#evaluations"><span class="nav-icon">⭐</span> نظام التقييم</a>
+
+      <div class="nav-section" style="margin-top:24px">النشر والربط</div>
+      <a href="#offline"><span class="nav-icon">🖥️</span> التشغيل المحلي (أوفلاين)</a>
+      <a href="#online"><span class="nav-icon">🌐</span> النشر أونلاين (VPS/سحابي)</a>
+      <a href="#sdk"><span class="nav-icon">🔗</span> دليل ربط SDK</a>
+
+      <div class="nav-section" style="margin-top:24px">مراجع وقوائم</div>
+      <a href="#env-vars"><span class="nav-icon">🔑</span> متغيرات البيئة (Env Vars)</a>
+      <a href="#faq"><span class="nav-icon">❓</span> الأسئلة الشائعة</a>
+      <a href="#changelog"><span class="nav-icon">📝</span> سجل التغييرات</a>
+      <a href="#support"><span class="nav-icon">💬</span> الدعم والمساعدة</a>
+    </nav>
+  </aside>
+
+  <!-- ── MAIN ── -->
+  <main class="main">
+
+    <!-- Overview -->
+    <section id="overview">
+      <div class="badges">
+        <span class="badge badge-blue">Django 5.0</span>
+        <span class="badge badge-green">Vue.js 3</span>
+        <span class="badge badge-cyan">WebSockets</span>
+        <span class="badge badge-yellow">عربي / إنجليزي</span>
+      </div>
+      <h1>Sentry PM</h1>
+      <p style="font-size:18px; color:var(--text2); margin-bottom:32px;">
+        منصة متكاملة لإدارة المشاريع (على غرار Jira) والمراقبة الحية لأخطاء الكود (على غرار Sentry). مصممة بواجهة داكنة متميزة (Vibrant-Glass)، ثنائية اللغة تدعم بالكامل العربية (RTL) بالإضافة إلى التواصل اللحظي والمحادثات المدمجة.
+      </p>
+
+      <div class="card-grid">
+        <div class="stat-card"><div class="val">50+</div><div class="lbl">ميزة مدمجة</div></div>
+        <div class="stat-card"><div class="val">2</div><div class="lbl">لغات (عربي / إنجليزي)</div></div>
+        <div class="stat-card"><div class="val">لحظي</div><div class="lbl">إشعارات WebSocket</div></div>
+        <div class="stat-card"><div class="val">v1.0.0</div><div class="lbl">الإصدار الحالي</div></div>
+      </div>
+    </section>
+
+    <!-- Requirements -->
+    <section id="requirements">
+      <h2>⚙️ متطلبات تشغيل النظام</h2>
+      <table>
+        <thead><tr><th>المكون</th><th>المطلوب بالحد الأدنى</th><th>الموصى به للإنتاج</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Python</strong></td><td>الإصدار 3.10 فأعلى</td><td>الإصدار 3.12</td></tr>
+          <tr><td><strong>Node.js</strong></td><td>الإصدار 16 فأعلى</td><td>الإصدار 20 LTS</td></tr>
+          <tr><td><strong>npm</strong></td><td>الإصدار 8 فأعلى</td><td>الإصدار 10 فأعلى</td></tr>
+          <tr><td><strong>قاعدة البيانات</strong></td><td>SQLite (مدمجة ولا تحتاج إعداد)</td><td>PostgreSQL 14+</td></tr>
+          <tr><td><strong>الذاكرة (RAM)</strong></td><td>512 ميجابايت</td><td>2 جيجابايت فأكثر</td></tr>
+          <tr><td><strong>نظام التشغيل</strong></td><td>Windows / Linux / macOS</td><td>Ubuntu 22.04 LTS</td></tr>
+        </tbody>
+      </table>
+      <div class="alert alert-info">
+        <div class="alert-icon">💡</div>
+        <div class="alert-body">
+          <strong>معلومة: SQLite مدمجة ولا تحتاج لأي إعداد!</strong>
+          قاعدة بيانات SQLite تأتي مع Python تلقائياً. بإمكانك التثبيت وتشغيل النظام فورا دون الحاجة لتنصيب خادم قواعد بيانات معقد. عند الانتقال لمرحلة الإنتاج الحي يمكنك ببساطة تفعيل PostgreSQL.
+        </div>
+      </div>
+    </section>
+
+    <!-- Installation -->
+    <section id="installation">
+      <h2>🚀 خطوات التثبيت</h2>
+
+      <h3>الطريقة الأولى — سكريبت التثبيت الآلي (الموصى بها)</h3>
+      <p>أمر واحد يكفي للقيام بكل شيء:</p>
+      <pre><code><span class="cmt"># بعد تنزيل الكود وفك ضغطه، افتح الطرفية Terminal واكتب:</span>
+<span class="cmd">python install.py</span></code></pre>
+      <p>وسيقوم السكريبت تلقائياً بـ:</p>
+      <ol class="steps">
+        <li><div class="step-body"><div class="step-title">إنشاء ملف <code>.env</code></div>ينسخ القالب ويسمح لك بكتابة الإعدادات الخاصة بك.</div></li>
+        <li><div class="step-body"><div class="step-title">تثبيت المكتبات اللازمة</div>ينفذ تثبيت حزم Python المطلوبة.</div></li>
+        <li><div class="step-body"><div class="step-title">تهيئة وإنشاء الجداول</div>تشغيل أوامر الهجرة (Migrations) بشكل آلي على قاعدة البيانات.</div></li>
+        <li><div class="step-body"><div class="step-title">إنشاء حساب المدير العام</div>ينشئ حساب <code>admin</code> برقم سري <code>admin123</code> لتتمكن من الدخول الفوري.</div></li>
+        <li><div class="step-body"><div class="step-title">زرع البيانات التجريبية</div>يتيح لك تعبئة النظام ببيانات وهمية كمشاريع تجريبية وأخطاء كود وأشخاص.</div></li>
+        <li><div class="step-body"><div class="step-title">إعداد الواجهة الأمامية</div>يجلب حزم الـ Vue.js ويجهزها.</div></li>
+      </ol>
+
+      <h3>الطريقة الثانية — التثبيت اليدوي التقليدي</h3>
+      <h4>الخطوة 1: الخادم الخلفي (Backend)</h4>
+      <pre><code><span class="cmt"># 1. إنشاء بيئة بيثون المعزولة</span>
+<span class="cmd">python -m venv venv</span>
+<span class="cmd">venv\Scripts\activate</span>          <span class="cmt"># للويندوز</span>
+<span class="cmd">source venv/bin/activate</span>       <span class="cmt"># لأجهزة الماك ولينكس</span>
+
+<span class="cmt"># 2. تثبيت الحزم</span>
+<span class="cmd">pip install -r requirements.txt</span>
+
+<span class="cmt"># 3. إنشاء ملفات البيئة</span>
+<span class="cmd">copy .env.example .env</span>         <span class="cmt"># ويندوز</span>
+<span class="cmd">cp .env.example .env</span>           <span class="cmt"># الماك ولينكس</span>
+
+<span class="cmt"># 4. ترحيل البيانات</span>
+<span class="cmd">python manage.py migrate</span>
+
+<span class="cmt"># 5. حساب الأدمن</span>
+<span class="cmd">python manage.py createsuperuser</span>
+
+<span class="cmt"># 6. إضافة الديمو (اختياري)</span>
+<span class="cmd">python demo_data.py</span>
+
+<span class="cmt"># 7. تشغيل السيرفر</span>
+<span class="cmd">python manage.py runserver</span></code></pre>
+
+      <h4>الخطوة 2: الخادم الأمامي (Frontend)</h4>
+      <pre><code><span class="cmd">cd frontend</span>
+<span class="cmd">npm install</span>
+<span class="cmd">npm run dev</span>     <span class="cmt"># خادم التطوير</span>
+<span class="cmt"># وعند الرغبة بالإطلاق للإنتاج:</span>
+<span class="cmd">npm run build</span>   <span class="cmt"># توليد نسخة الإنتاج النهائية بداخل مجلد dist</span></code></pre>
+
+      <div class="alert alert-success">
+        <div class="alert-icon">✅</div>
+        <div class="alert-body">
+          <strong>اكتمل التثبيت! افتح متصفحك على:</strong>
+          واجهة المستخدم: <code>http://localhost:5173</code> &nbsp;|&nbsp; واجهة الأدمن الافتراضية: <code>http://localhost:3535/admin</code>
+        </div>
+      </div>
+    </section>
+
+    <!-- Configuration -->
+    <section id="configuration">
+      <h2>🔧 الإعداد والتهيئة</h2>
+      <p>يتم ضبط كافة إعدادات النظام الحساسة داخل ملف <code>.env</code> الموجود في جذر المشروع.</p>
+    </section>
+
+    <!-- Env Vars -->
+    <section id="env-vars">
+      <h2>🔑 مرجع متغيرات البيئة <code>.env</code></h2>
+      <table>
+        <thead><tr><th>المتغير</th><th>القيمة الافتراضية</th><th>الوظيفة الوصفية</th></tr></thead>
+        <tbody>
+          <tr><td><code>SECRET_KEY</code></td><td><em>نص غير آمن</em></td><td>مفتاح أمان النظام. <strong>يجب تغييره عند النشر.</strong> احصل على واحد من <a href="https://djecrety.ir" target="_blank">djecrety.ir</a></td></tr>
+          <tr><td><code>DEBUG</code></td><td><code>True</code></td><td>غيّره إلى <code>False</code> في الإنتاج لإخفاء شاشات أخطاء الكود الأمنية.</td></tr>
+          <tr><td><code>ALLOWED_HOSTS</code></td><td><code>*</code></td><td>قائمة النطاقات المسموحة للاتصال، مثال: <code>yourdomain.com,www.yourdomain.com</code></td></tr>
+          <tr><td><code>DB_ENGINE</code></td><td><code>sqlite</code></td><td>نوع قاعدة البيانات: <code>sqlite</code> أو <code>postgresql</code></td></tr>
+          <tr><td><code>POSTGRES_DB</code></td><td><code>sentry_pm</code></td><td>اسم قاعدة البيانات (في حال استخدام postgresql فقط)</td></tr>
+          <tr><td><code>POSTGRES_USER</code></td><td><code>postgres</code></td><td>اسم المستخدم في بوستجري</td></tr>
+          <tr><td><code>POSTGRES_PASSWORD</code></td><td><em>فارغ</em></td><td>الرقم السري في بوستجري</td></tr>
+          <tr><td><code>POSTGRES_HOST</code></td><td><code>127.0.0.1</code></td><td>منفذ اتصال بوستجري</td></tr>
+          <tr><td><code>POSTGRES_PORT</code></td><td><code>5432</code></td><td>بورت اتصال بوستجري</td></tr>
+          <tr><td><code>MEDIA_ROOT</code></td><td><code>media/</code></td><td>مسار تخزين مرفقات المستخدمين والصور الرمزية</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Demo -->
+    <section id="demo">
+      <h2>🎭 حسابات الديمو التجريبية</h2>
+      <p>بمجرد قيامك بتشغيل الأمر <code>python demo_data.py</code> ستتوفر لك هذه الحسابات للتجربة الفورية:</p>
+      <div class="creds-box">
+        <div class="cred-card">
+          <div class="cred-role">👑 مدير عام (Super Admin)</div>
+          <div class="cred-row"><span class="cred-key">اسم المستخدم</span><span class="cred-val">admin</span></div>
+          <div class="cred-row"><span class="cred-key">كلمة المرور</span><span class="cred-val">admin123</span></div>
+          <div class="cred-row"><span class="cred-key">الوصول</span><span class="cred-val">وصول لكامل النظام</span></div>
+        </div>
+        <div class="cred-card">
+          <div class="cred-role">👨‍💻 مطور ضمن التيم (Developer)</div>
+          <div class="cred-row"><span class="cred-key">اسم المستخدم</span><span class="cred-val">devuser</span></div>
+          <div class="cred-row"><span class="cred-key">كلمة المرور</span><span class="cred-val">dev12345</span></div>
+          <div class="cred-row"><span class="cred-key">الوصول</span><span class="cred-val">صلاحيات مطور عادية</span></div>
+        </div>
+        <div class="cred-card">
+          <div class="cred-role">👩‍💻 مطور ضمن التيم (Developer)</div>
+          <div class="cred-row"><span class="cred-key">اسم المستخدم</span><span class="cred-val">sarah</span></div>
+          <div class="cred-row"><span class="cred-key">كلمة المرور</span><span class="cred-val">sara12345</span></div>
+          <div class="cred-row"><span class="cred-key">الوصول</span><span class="cred-val">صلاحيات مطور عادية</span></div>
+        </div>
+        <div class="cred-card">
+          <div class="cred-role">👨‍💻 مطور ضمن التيم (Developer)</div>
+          <div class="cred-row"><span class="cred-key">اسم المستخدم</span><span class="cred-val">omar</span></div>
+          <div class="cred-row"><span class="cred-key">كلمة المرور</span><span class="cred-val">omar12345</span></div>
+          <div class="cred-row"><span class="cred-key">الوصول</span><span class="cred-val">صلاحيات مطور عادية</span></div>
+        </div>
+      </div>
+      <div class="alert alert-warning">
+        <div class="alert-icon">⚠️</div>
+        <div class="alert-body">
+          <strong>احذر ترك هذه الحسابات عند نشر النظام بالإنترنت!</strong>
+          هذه الحسابات لغرض التجربة ورفع كفاءة المعاينة محلياً فقط. قم بمسحها أو تغيير أرقامها السرية قبل استضافة التطبيق على الحية.
+        </div>
+      </div>
+    </section>
+
+    <!-- Features -->
+    <section id="features">
+      <h2>✨ جميع الميزات المتاحة</h2>
+
+      <h3 id="error-tracking">🐛 تتبع ورصد الأخطاء البرمجية للمشاريع</h3>
+      <div class="feature-grid">
+        <div class="feature-item"><div class="fi-icon">🔍</div><div><div class="fi-title">التقاط أخطاء الـ JS</div><div class="fi-desc">يسحب كافة الاستثناءات مع توضيح شجرة الـ Stack Trace اللحظية</div></div></div>
+        <div class="feature-item"><div class="fi-icon">🌐</div><div><div class="fi-title">مراقبة اتصال الشبكة والفشل</div><div class="fi-desc">يسجل فشل الـ API Request وتأخر الـ Timeouts عبر Fetch و XHR</div></div></div>
+        <div class="feature-item"><div class="fi-icon">📽️</div><div><div class="fi-title">إعادة تشغيل الجلسات (Replay)</div><div class="fi-desc">تستطيع رؤية الشاشة وكيفية تفاعل المستخدم بصرياً قبل أن يحدث الـ Crash</div></div></div>
+        <div class="feature-item"><div class="fi-icon">📊</div><div><div class="fi-title">داشبورد إحصائيات للأخطاء</div><div class="fi-desc">توفر رسوماً بيانية وتوجهات (Trends) تبين مدى استقرار المشاريع</div></div></div>
+        <div class="feature-item"><div class="fi-icon">🏷️</div><div><div class="fi-title">إدارة الحالات وإسناد المهام</div><div class="fi-desc">تعيين الخطأ كـ محلول وربطه بشخص معين من الفريق ليقوم بالعمل عليه</div></div></div>
+        <div class="feature-item"><div class="fi-icon">🔗</div><div><div class="fi-title">مكتبة الربط (Client SDK)</div><div class="fi-desc">مكتبة JS صغيرة الحجم بمجرد حقنها ترسل لك أي كارثة لمشروعك بشكل تلقائي</div></div></div>
+      </div>
+
+      <h3 id="project-mgmt">📊 إدارة المشاريع الحديثة (Jira-Style)</h3>
+      <div class="feature-grid">
+        <div class="feature-item"><div class="fi-icon">📋</div><div><div class="fi-title">لوحة كانبان (Kanban Board)</div><div class="fi-desc">ترتيب المهام بالسحب والإفلات ضمن قوائم قابلة للتخصيص الكامل</div></div></div>
+        <div class="feature-item"><div class="fi-icon">📦</div><div><div class="fi-title">دورات العمل الرشيقة (Sprints)</div><div class="fi-desc">جدولة العمل لفترات زمنية محددة وضبط أهداف متسّقة لتسليمها</div></div></div>
+        <div class="feature-item"><div class="fi-icon">📈</div><div><div class="fi-title">تقارير وتحليلات العمل</div><div class="fi-desc">Burndown و Burnup لحساب سرعة وإنجازات الفريق الدقيقة وإحصائيات الـ Workload</div></div></div>
+        <div class="feature-item"><div class="fi-icon">💬</div><div><div class="fi-title">محادثات الفريق الحية للأنظمة</div><div class="fi-desc">غرفة شات متخصصة لكل مشروع يعمل بنظام WebSockets المباشر والمرفقات</div></div></div>
+        <div class="feature-item"><div class="fi-icon">📝</div><div><div class="fi-title">توثيق الأنظمة بويكي داخلي</div><div class="fi-desc">مستندات مبنية على Markdown تحتفظ بتاريخ التعديلات وتسمح وتصدير ملفات PDF</div></div></div>
+        <div class="feature-item"><div class="fi-icon">👥</div><div><div class="fi-title">صلاحيات الفرق المدارة بالكامل</div><div class="fi-desc">حماية المشروع بتقييد حقوق القراءة والوصول للتخصيص والمشاهدة والتحكم</div></div></div>
+        <div class="feature-item"><div class="fi-icon">🎯</div><div><div class="fi-title">تنظيم الملاحم الروائية (Epics)</div><div class="fi-desc">ترتيب وحجز مهام كثيرة وفرعية تحت شجرة وهدف موحد ليتم إتمامها بسلام</div></div></div>
+        <div class="feature-item"><div class="fi-icon">🔔</div><div><div class="fi-title">الإشعارات الحية والموجهة لليوزر</div><div class="fi-desc">إرسال التنبيهات حال وقوع أي شيء متعلق باليوزر بدون حتى حاجة لإعادة تحديث الصفحة</div></div></div>
+      </div>
+
+      <h3 id="evaluations">⭐ تقييم الأداء الاحترافي والتطوير للمبرمجين</h3>
+      <div class="feature-grid">
+        <div class="feature-item"><div class="fi-icon">📅</div><div><div class="fi-title">تخصيص فترات التقييمات</div><div class="fi-desc">افتح فصل تقييمي ربع سنوي أو شهري على حسب نظام منشأتك واستعرضه بسهولة</div></div></div>
+        <div class="feature-item"><div class="fi-icon">🏆</div><div><div class="fi-title">لوحة الصدارة والترتيب للمميزين</div><div class="fi-desc">يصنع جو التحفيز والـ Gamification من خلال عرض الموظفين بمراكز وتصنيفات</div></div></div>
+        <div class="feature-item"><div class="fi-icon">📊</div><div><div class="fi-title">توزيع واستعراض الدرجات الإحصائية</div><div class="fi-desc">يفكك نقاط الضعف والقوة للفريق بناءً على الرسم البياني الكاشف لأدائه المهني</div></div></div>
+        <div class="feature-item"><div class="fi-icon">👤</div><div><div class="fi-title">صفحة وتقرير المراجعة الفردي (رؤيتي)</div><div class="fi-desc">تمكين المبرمج نفسه لرؤية عيوبه وتقدمه على مر الوقت وتطوير مستواه للمستقبل</div></div></div>
+      </div>
+
+      <h3>🛡️ النظام الداخلي ، الحماية وإدارة الهوية</h3>
+      <div class="feature-grid">
+        <div class="feature-item"><div class="fi-icon">🔐</div><div><div class="fi-title">دخول محصן بنظام طبقات الـ JWT</div><div class="fi-desc">حفظ آمن بدون ثغرات مع ميزة إعادة تدوير توكنات الجلسات المنتهية لحفظ الحقوق</div></div></div>
+        <div class="feature-item"><div class="fi-icon">🔑</div><div><div class="fi-title">هندسة متقدمة للصلاحيات والمجموعات</div><div class="fi-desc">تستطيع رسم وحرية تشكيل أي دور تحتاجه شركتك وتوزيع التراخيص الدقيقة عليها</div></div></div>
+        <div class="feature-item"><div class="fi-icon">⏱️</div><div><div class="fi-title">الإغلاق الذاتي والوقائي للأمان (Timeout)</div><div class="fi-desc">حيازة آليات الخروج التلقائي متى ما ترك الاستشاري جهازه في ساعات ممتدة بلا عمل</div></div></div>
+        <div class="feature-item"><div class="fi-icon">🌍</div><div><div class="fi-title">العربية لغة أصلية (RTL Fully Supported)</div><div class="fi-desc">نقلاب حقيقي وليس محاكي ، يدعم المحاذاة والتباعدات والحركات الخاصة بشاشات اليمين للرؤية</div></div></div>
+        <div class="feature-item"><div class="fi-icon">🌙</div><div><div class="fi-title">وضع الداكن الاحترافي الأنيق حصرياً (Dark)</div><div class="fi-desc">تصميم حداثي ومودرن يجذب العين ولا يفصلها يعزز العمل ليلي مستمر بشكل غاية في الراحة البصرية</div></div></div>
+        <div class="feature-item"><div class="fi-icon">🧹</div><div><div class="fi-title">إدارة الصيانة وحفظ حجم التخزين آلياً (DB Cleanup)</div><div class="fi-desc">لن تمتلئ قواعد الاستضافة سريعاً من الأخطاء لأن النظام يحظى بأدوات تدمير وإخلاء الأرشيف دورياً</div></div></div>
+      </div>
+    </section>
+
+    <!-- Offline Deployment -->
+    <section id="offline">
+      <h2>🖥️ التشغيل على الشبكة المحلية أو أوفلاين (Local Network)</h2>
+      <p>يمكن تشغيل Sentry PM بالكامل على جهازك أو شبكة الإنترنت الخاصة بشركتك (Intranet) — <strong>بدون الحاجة لاتصال خارجي بالإنترنت على الإطلاق</strong>.</p>
+
+      <h3>لمن هذه الخاصية؟</h3>
+      <div class="feature-grid">
+        <div class="feature-item"><div class="fi-icon">🏢</div><div><div class="fi-title">شبكات الشركات الداخلية</div><div class="fi-desc">قم بتشغيله على خادم الشركة ووفر الوصول لجميع الموظفين بالشبكة</div></div></div>
+        <div class="feature-item"><div class="fi-icon">💻</div><div><div class="fi-title">للمطور المستقل</div><div class="fi-desc">استخدمه كمساعدك الشخصي في تنظيم مشاريعك ومراقبة تطبيقاتك محلياً</div></div></div>
+        <div class="feature-item"><div class="fi-icon">🔒</div><div><div class="fi-title">البيئات الأمنية الحساسة</div><div class="fi-desc">المستشفيات والبنوك والحكومات التي تمنع خروج بياناتها لسيرفرات سحابية خارجية</div></div></div>
+        <div class="feature-item"><div class="fi-icon">🧪</div><div><div class="fi-title">بيئة التجارب والتطوير</div><div class="fi-desc">جرب كل شيء وطوره قبل نشر التحديث للعميل الحقيقي على سيرفر الإنتاج</div></div></div>
+      </div>
+
+      <h3>إعداد الشبكة المحلية (LAN)</h3>
+      <p>لجعل النظام متاحاً لكافة الموظفين على نفس شبكة الـ Wi-Fi:</p>
+      <pre><code><span class="cmt"># الخطوة 1: استخرج عنوان الآيبي الداخلي للجهاز المستضيف</span>
+<span class="cmd">ipconfig</span>          <span class="cmt"># في الويندوز، ابحث عن IPv4 (مثال: 192.168.1.100)</span>
+<span class="cmd">hostname -I</span>       <span class="cmt"># اللينكس وأجهزة التيرمنال المتقدمة</span>
+
+<span class="cmt"># الخطوة 2: شغل السيرفر ليقبل الاتصال من كل المنافذ الداخلية</span>
+<span class="cmd">python manage.py runserver 0.0.0.0:3535</span>
+
+<span class="cmt"># الخطوة 3: ادخل لملف الـ .env وعدل سطر الاستضافة:</span>
+ALLOWED_HOSTS=192.168.1.100,localhost
+
+<span class="cmt"># الخطوة 4: شغل واجهة المشاهدين ليقبل الاستماع من الخارج</span>
+<span class="cmd">cd frontend && npm run dev -- --host 0.0.0.0</span></code></pre>
+
+      <div class="alert alert-success">
+        <div class="alert-icon">✅</div>
+        <div class="alert-body">
+          <strong>النتيجة: أي شخص متصل بنفس الـ Wi-Fi يمكنه الوصول للنظام عبر:</strong>
+          <code>http://192.168.1.100:5173</code> — (مع استبدال الـ IP الظاهر بعنوان الخادم الداخلي الخاص بك).
+        </div>
+      </div>
+    </section>
+
+    <!-- Online Deployment -->
+    <section id="online">
+      <h2>🌐 النشر والاستضافة الشاملة للإنترنت (Production)</h2>
+      <p>لتتيح Sentry PM لعملائك وموظفيك الموزعين عن بعد، ستحتاج نشره باستخدام إحدى هذه الخيارات الاحترافية:</p>
+
+      <h3>الخيار الأول — منصة Railway.app (الأسهل، والأكثر ترشيحاً)</h3>
+      <ol class="steps">
+        <li><div class="step-body"><div class="step-title">ارفع الكود للـ GitHub</div>اصنع مستودع خاص بك وارفع به مجلدات الكود.</div></li>
+        <li><div class="step-body"><div class="step-title">اربط به Railway</div>اذهب لموقع <a href="https://railway.app" target="_blank">railway.app</a> ثم أنشئ بروجكت جديد يعتمد على استدعاء الكود من حسابك في الغيت-هب.</div></li>
+        <li><div class="step-body"><div class="step-title">ضع متغيرات الحماية والبيئة</div>اضبط <code>DB_ENGINE=postgresql</code> والمتغيرات الأخرى ومفتاح الحماية كما ذُكر سلفا.</div></li>
+        <li><div class="step-body"><div class="step-title">تم الأمر! خذ الدومين الخاص بك</div>سيرفر ريلوي سيعلمك حال جاهزية الروابط وسيولد لك رابط بـ HTTPS مؤمن فورا كالتالي <code>https://sentry-pm-xxxx.railway.app</code>.</div></li>
+      </ol>
+
+      <h3>الخيار الثاني — سيرفر تأجيري (VPS / AWS / DigitalOcean)</h3>
+      <pre><code><span class="cmt"># 1. الدخول بالـ SSH للخادم المعزول:</span>
+<span class="cmd">ssh user@your-server-ip</span>
+
+<span class="cmt"># 2. تنزيل اللغات وتثبيت Nginx لاستضافة البيانات</span>
+<span class="cmd">sudo apt update && sudo apt install python3 python3-pip nodejs npm nginx -y</span>
+
+<span class="cmt"># 3. جلب النظام للسيرفر وبدء التثبيت</span>
+<span class="cmd">git clone your-repo /var/www/sentry-pm</span>
+<span class="cmd">cd /var/www/sentry-pm && python install.py</span>
+
+<span class="cmt"># 4. بناء الـ Vue.js ليكون مضغوطاً وجاهزاً للمستخدم النهائي</span>
+<span class="cmd">cd frontend && npm run build</span>
+
+<span class="cmt"># 5. تشغيل واجهة البيانات بواسطة نظام يقبل اتصال قنوات التراسل المباشرة (ASGI):</span>
+<span class="cmd">daphne -b 0.0.0.0 -p 3535 config.asgi:application &</span>
+
+<span class="cmt"># 6. تمرير الطلبات وربطها لاستقبال المواقع على الدومين (عبر ضبط nginx).</span></code></pre>
+
+      <div class="alert alert-warning">
+        <div class="alert-icon">⚠️</div>
+        <div class="alert-body">
+          <strong>ملاحظة للمستضيفين المشتركين الضعاف:</strong>
+          ميزة إرسال الشات الحي ومزامنة الإشعارات تستدعي استخدام (Daphne/Websockets). الاستضافات التقليدية الضعيفة مثل (cPanel Shared Hosting) تعمل غالبا بـ WSGI لذلك ستفقد ميزات التحديث الفوري المبرمج.
+        </div>
+      </div>
+    </section>
+
+    <!-- SDK Integration -->
+    <section id="sdk">
+      <h2>🔗 دليل إدماج وبدء مراقبة الأنظمة بالـ SDK</h2>
+      <p>يأتي مع Sentry PM مكتبة مخصصة تدعى <code>client_sdk.js</code>. بإضافة هذه اللصيقات المدمجة بالـ JavaScript داخل الكود لأي موقع لك — سيقوم الويب تلقائياً بإخطارك إن واجه المستخدم مشاكل بدون أن تنزعج وبشكل هادئ وببيانات مذهلة!</p>
+
+      <div class="alert alert-info">
+        <div class="alert-icon">💡</div>
+        <div class="alert-body">
+          <strong>يدعم أي لغة، منصة، أو أداة عمل برمجية للمواقع!</strong>
+          React, Vue, Angular, Laravel Blade، بل وحتى الـ WordPress والمواقع المكونة من HTML صريح فقط.
+        </div>
+      </div>
+
+      <h3>الخطوة 1 — ضع مكتبات الاتصال قبل إغلاق الـ Head لتطبيقك أو موقعك</h3>
+      <pre><code><span class="cmt">&lt;!-- اسكب هذين السطرين أسفل أكواد صفحات الأنظمة لتبدأ بالتسجيل --&gt;</span>
+&lt;script src="https://cdn.jsdelivr.net/npm/rrweb@latest/dist/rrweb.min.js"&gt;&lt;/script&gt;
+&lt;script src="https://YOUR-SENTRY-PM-URL/static/client_sdk.js"&gt;&lt;/script&gt;</code></pre>
+
+      <h3>الخطوة 2 — تشغيل عملية تسجيل المراقبات لحظيا</h3>
+      <pre><code>&lt;script&gt;
+  <span class="cmt">// استدعي الدالة بمجرد أن يكتمل تحميل صفحتك للعميل بالمتصفح</span>
+  window.addEventListener('load', function() {
+    Tracker.init({
+      trackerUrl: <span class="str">'https://YOUR-SENTRY-PM-URL'</span>,  <span class="cmt">// رابط نظامك السنتري السحابي هنا</span>
+      project:    <span class="str">'اسم تطبيقي هنا'</span>,               <span class="cmt">// اسم المشروع يجب ان يتطابق بحرف واو تماما مع السنتري</span>
+      userId:     <span class="str">'ahmed123'</span>                       <span class="cmt">// (اختياري): سجل رقم الأيدي الخاص بالمستخدم لتتبعه شخصيا عبر النظام</span>
+    });
+  });
+&lt;/script&gt;</code></pre>
+
+      <h3>ما الذي سيرصده ويصوره من تلقاء نفسه الآن؟</h3>
+      <table>
+        <thead><tr><th>العملية والتدخل الخاطئ</th><th>التقنية اللاقطة له</th><th>مكان الظهور في Sentry PM</th></tr></thead>
+        <tbody>
+          <tr><td>أخطاء واكسبشنات الجافاسكربت</td><td>يستمعه تلقائيا عبر اعتراض <code>window.onerror</code></td><td>Issues → قائمة الاستثناءات</td></tr>
+          <tr><td>الأكواد الغير محلولة من فروع البرومس</td><td>اعتراض وعدم قبول <code>unhandledrejection</code></td><td>Issues → قائمة الاستثناءات</td></tr>
+          <tr><td>فشل واستهلاك اتصال الشبكة (الباك-اند)</td><td>خطف كل الدوال التي ترسل استعلام <code>Fetch/XHR</code></td><td>Issues → مسجل الشبكات</td></tr>
+          <tr><td>طباعات أو رسائل فاشلة في كونسول الإنتاج</td><td>مراقبة دوال الـ Console للتعقب</td><td>في صفحة تفاصيل كل إيرور كإثبات</td></tr>
+          <tr><td>إعادة تصوير ما ارتكبه العميل للأسف بالفيديو</td><td>عبر التحديث الحي والتسجيل بـ DOM المستمر بـ rrweb</td><td>Issues → شاشة إعادة المشغل (Player)</td></tr>
+        </tbody>
+      </table>
+
+      <h3>كيف يتم نقل المعلومات تقنياً؟ (Data Flow)</h3>
+      <div class="card" style="font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--text2); line-height:2; direction: ltr; text-align: left;">
+        Your App (Browser)<br>
+        &nbsp;&nbsp;&nbsp;↓ JavaScript error occurs violently<br>
+        &nbsp;&nbsp;&nbsp;↓ SDK captures the event: error msg + stack tree + last 20 sec replay recording<br>
+        &nbsp;&nbsp;&nbsp;↓ POST req sent via fetch /api/capture/ to → <strong style="color:var(--accent)">Sentry PM API</strong><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↓ Incident is permanently persisted in the DB<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↓ Triggers notifications for developers linked to that specific Project!<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↓ Dev checks UI and taps "Replay Session" → watches the chaos unfold.
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section id="faq">
+      <h2>❓ الأسئلة المتكررة</h2>
+
+      <div class="faq-item open">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">
+          هل أستطيع الاكتفاء بـ SQLite دون الحاجة لـ PostgreSQL حقا؟ <span class="faq-arrow">▼</span>
+        </div>
+        <div class="faq-a">بالتأكيد! لتفعلها، توجه لملف البيئة <code>.env</code> وعدل القاعدة الافتراضية <code>DB_ENGINE=sqlite</code> ولن تحتاج للذهاب لأي مكان وتنزيل برامج. ننصح بها للبيئات وفرق العمل الصغيرة؛ بينما البوستجريسكيويل مخصص لقدرات استضافة وفرق أكثر شراسة.</div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">
+          تغلبني شاشة الشات والتقييم! هل هذا النظام يبُنى حقاً بنسخة العربية المعكوسة (RTL) أم هو عبارة عن ترجمة شاشات ركيكة فقط؟ <span class="faq-arrow">▼</span>
+        </div>
+        <div class="faq-a">ندرك تماماً حجم المعاناة العربية بالأنظمة الغربية؛ قمنا بكتابة وهيكلة المتغّيرات والـ CSS خصيصاً للتبديل المنطقي لكل المساحات ومواضع المحاذاة. إذا قمت بالتبديل للغة العربية من إعدادات المستخدم، سيميل كل النظام وواجهاته بالكامل من اليمين ولأجل لغة الضاد بدون أي اختلال وبجودة بصرية لا تُضاهى.</div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">
+          كيف يمكن استعادة ديمو النظام بعد حذفه أثناء استعراضه؟ <span class="faq-arrow">▼</span>
+        </div>
+        <div class="faq-a">وفرنا لك مجدداً أمر <code>python reset_demo.py</code> سيطلب منك بالإنجليزية تأكيد كلمة <code>RESET</code>. لو وافقت سيبتر النظام كامل المشاريع، الرسائل والبيانات المعطلة ويضخ مئات الجداول المثالية التي تبهر أي عميل للتطبيق.</div>
+      </div>
+      
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">
+          هل أحصل على الشفرات المصدرية المفتوحة بالكامل لنواة المنتج؟ <span class="faq-arrow">▼</span>
+        </div>
+        <div class="faq-a">بطبيعة الحال، كلا المجلدين الأساسيين للخادم الخلفي (Django Back-end) وأوامر التطبيق الأمامي المطور بالكامل (Vue.js Front-end) في أيديك الشريفة بشكل مفتوح وموثوق وخالي من الاحتكار وتستطيع التلاعب أو حذفه بالكامل وبناء واجهات أو تعديلات غير مشروطة للتربح منها بحسب التراخيص.</div>
+      </div>
+    </section>
+
+    <!-- Support -->
+    <section id="support">
+      <h2>💬 الدعم والتواصل الفني</h2>
+      <div class="card">
+        <p>استخدم صفحة (Comments) داخل صفحة النظام بالموقع الرسمي على منصة CodeCanyon في حال أحسست بصعوبة في إطلاق أي شيء بالمستند الحالي مع تضمين:</p>
+        <ul style="color:var(--text2); padding-right:20px; font-size:14px; margin-top:12px;">
+          <li style="margin-bottom:8px">إصدار وتقنيات بايثون المستضافة للبيئة الخاصة لجهازك (عبر أمر <code>python --version</code>)</li>
+          <li style="margin-bottom:8px">صورة من شاشة الأوامر توضح مكمن التعثر الفعلي بالطرفية</li>
+          <li>نظام وطريقة الوصول التي أحبطتها (مثال، استخدمت سيرفر الأوبينتو برقم كذا..)</li>
+        </ul>
+      </div>
+      <p style="margin-top:24px; font-size:14px; color:var(--text3); text-align:center;">
+        منصة Sentry PM للإصدار 1.0.0 &nbsp;·&nbsp; مبني باحترافية بـ Django 5 و Vue.js 3 &nbsp;·&nbsp; © جميع الحقوق مكفولة لعام 2026
+      </p>
+    </section>
+
+  </main>
+</div>
+
+<script>
+// Highlight active nav link on scroll
+const sections = document.querySelectorAll('section[id]');
+const navLinks  = document.querySelectorAll('.nav a');
+const observer  = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      navLinks.forEach(l => l.classList.remove('active'));
+      const active = document.querySelector(`.nav a[href="#${entry.target.id}"]`);
+      if (active) active.classList.add('active');
+    }
+  });
+}, { rootMargin: '-30% 0px -70% 0px' });
+sections.forEach(s => observer.observe(s));
+</script>
+
+</body>
+</html>

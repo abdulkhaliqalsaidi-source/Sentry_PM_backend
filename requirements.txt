@@ -1,0 +1,10 @@
+django>=5.0.0
+djangorestframework
+django-cors-headers
+requests
+daphne
+channels
+djangorestframework-simplejwt
+psycopg2-binary
+python-dotenv
+whitenoise
