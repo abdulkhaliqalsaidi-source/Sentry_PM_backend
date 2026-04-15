@@ -6,6 +6,23 @@ from .models import Project, Task
 
 User = get_user_model()
 
+@receiver(post_save, sender=Project)
+def create_default_statuses(sender, instance, created, **kwargs):
+    """Auto-create default TaskStatuses when a new Project is created."""
+    if created:
+        from .models import TaskStatus
+        defaults = [
+            {'name': 'To Do',       'category': 'TO_DO',       'color': '#64748B', 'order': 1},
+            {'name': 'In Progress', 'category': 'IN_PROGRESS',  'color': '#3B82F6', 'order': 2},
+            {'name': 'Done',        'category': 'DONE',         'color': '#10B981', 'order': 3},
+        ]
+        for s in defaults:
+            TaskStatus.objects.get_or_create(
+                project=instance, name=s['name'],
+                defaults={'category': s['category'], 'color': s['color'], 'order': s['order']}
+            )
+
+
 @receiver(post_save, sender=Issue)
 def create_project_from_issue(sender, instance, created, **kwargs):
     """
