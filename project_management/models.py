@@ -118,7 +118,7 @@ class Task(models.Model):
     assigned_to = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='assigned_tasks', on_delete=models.SET_NULL, null=True, blank=True)
     watchers = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='watched_tasks', blank=True)
     reporter = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='reported_tasks', on_delete=models.SET_NULL, null=True, blank=True)
-    status = models.ForeignKey(TaskStatus, related_name='tasks', on_delete=models.PROTECT)
+    status = models.ForeignKey(TaskStatus, related_name='tasks', on_delete=models.PROTECT, null=True, blank=True)
     priority = models.CharField(max_length=20, choices=PRIORITY_CHOICES, default='MEDIUM')
     story_points = models.IntegerField(default=0)
     environment = models.CharField(max_length=100, blank=True)

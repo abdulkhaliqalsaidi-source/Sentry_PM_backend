@@ -438,8 +438,6 @@ class TaskViewSet(viewsets.ModelViewSet):
             fire('on_task_created', task=task)
         except Exception:
             pass
-
-    def perform_update(self, serializer):
         instance = self.get_object()
         old_assigned_to = instance.assigned_to
         old_status = instance.status
