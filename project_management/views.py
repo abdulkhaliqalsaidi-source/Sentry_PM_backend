@@ -405,19 +405,25 @@ class TaskViewSet(viewsets.ModelViewSet):
         return queryset
 
 
-    def perform_create(self, serializer):
-        # Auto-assign first status if not provided or null
-        project = serializer.validated_data.get('project')
-        status = serializer.validated_data.get('status')
-        
-        if project and not status:
-            from .models import TaskStatus
-            default_status = TaskStatus.objects.filter(
-                project=project
-            ).order_by('order', 'id').first()
-            if default_status:
-                serializer.validated_data['status'] = default_status
+    def create(self, request, *args, **kwargs):
+        # Auto-inject default status if not provided
+        data = request.data.copy()
+        if not data.get('status'):
+            project_id = data.get('project')
+            if project_id:
+                from .models import TaskStatus
+                default_status = TaskStatus.objects.filter(
+                    project_id=project_id
+                ).order_by('order', 'id').first()
+                if default_status:
+                    data['status'] = default_status.id
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
+    def perform_create(self, serializer):
         task = serializer.save()
         # Fire automation: TASK_CREATED
         try:
