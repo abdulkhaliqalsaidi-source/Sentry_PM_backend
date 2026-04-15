@@ -71,6 +71,8 @@ class TaskStatus(models.Model):
     CATEGORY_CHOICES = (
         ('TO_DO', 'To Do'),
         ('IN_PROGRESS', 'In Progress'),
+        ('PENDING', 'Pending'),
+        ('IN_REVIEW', 'In Review'),
         ('DONE', 'Done'),
     )
     project = models.ForeignKey(Project, related_name='statuses', on_delete=models.CASCADE)

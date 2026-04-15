@@ -14,7 +14,9 @@ def create_default_statuses(sender, instance, created, **kwargs):
         defaults = [
             {'name': 'To Do',       'category': 'TO_DO',       'color': '#64748B', 'order': 1},
             {'name': 'In Progress', 'category': 'IN_PROGRESS',  'color': '#3B82F6', 'order': 2},
-            {'name': 'Done',        'category': 'DONE',         'color': '#10B981', 'order': 3},
+            {'name': 'Pending',     'category': 'PENDING',      'color': '#F59E0B', 'order': 3},
+            {'name': 'In Review',   'category': 'IN_REVIEW',    'color': '#8B5CF6', 'order': 4},
+            {'name': 'Done',        'category': 'DONE',         'color': '#10B981', 'order': 5},
         ]
         for s in defaults:
             TaskStatus.objects.get_or_create(

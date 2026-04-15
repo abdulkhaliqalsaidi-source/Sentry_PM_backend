@@ -79,7 +79,7 @@ class ProjectSerializer(serializers.ModelSerializer):
         return obj.tasks.filter(status__category='DONE').count()
 
     def get_in_progress_tasks(self, obj):
-        return obj.tasks.filter(status__category='IN_PROGRESS').count()
+        return obj.tasks.filter(status__category__in=['IN_PROGRESS', 'PENDING', 'IN_REVIEW']).count()
 
     def get_health(self, obj):
         total = obj.tasks.count()

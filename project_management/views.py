@@ -304,7 +304,21 @@ class ProjectViewSet(viewsets.ModelViewSet):
         return Project.objects.filter(query).distinct()
 
     def perform_create(self, serializer):
-        serializer.save(owner=self.request.user)
+        project = serializer.save(owner=self.request.user)
+        # Auto-create default statuses for the new project
+        from .models import TaskStatus
+        defaults = [
+            {'name': 'To Do',       'category': 'TO_DO',       'color': '#64748B', 'order': 1},
+            {'name': 'In Progress', 'category': 'IN_PROGRESS',  'color': '#3B82F6', 'order': 2},
+            {'name': 'Pending',     'category': 'PENDING',      'color': '#F59E0B', 'order': 3},
+            {'name': 'In Review',   'category': 'IN_REVIEW',    'color': '#8B5CF6', 'order': 4},
+            {'name': 'Done',        'category': 'DONE',         'color': '#10B981', 'order': 5},
+        ]
+        for s in defaults:
+            TaskStatus.objects.get_or_create(
+                project=project, name=s['name'],
+                defaults={'category': s['category'], 'color': s['color'], 'order': s['order']}
+            )
 
 from rest_framework import filters
 
@@ -651,7 +665,7 @@ def project_bottleneck(request, project_id):
     # ── 1. Overloaded Assignees ───────────────────────────────────────────────
     assignee_map = {}
     for t in all_tasks:
-        if t.assigned_to and t.status.category == 'IN_PROGRESS':
+        if t.assigned_to and t.status and t.status.category in ('IN_PROGRESS', 'PENDING', 'IN_REVIEW'):
             uid = t.assigned_to.id
             if uid not in assignee_map:
                 assignee_map[uid] = {'username': t.assigned_to.username, 'count': 0, 'tasks': []}
@@ -695,7 +709,7 @@ def project_bottleneck(request, project_id):
     stale_cutoff = now - timedelta(days=stale_threshold)
     stale_tasks = []
     for t in all_tasks:
-        if t.status.category == 'IN_PROGRESS' and t.created_at < stale_cutoff:
+        if t.status and t.status.category in ('IN_PROGRESS', 'PENDING', 'IN_REVIEW') and t.created_at < stale_cutoff:
             days_stale = (now - t.created_at).days
             stale_tasks.append({
                 'id': t.id,
