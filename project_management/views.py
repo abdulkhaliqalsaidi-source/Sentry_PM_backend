@@ -438,39 +438,27 @@ class TaskViewSet(viewsets.ModelViewSet):
             fire('on_task_created', task=task)
         except Exception:
             pass
+
+    def perform_update(self, serializer):
         instance = self.get_object()
         old_assigned_to = instance.assigned_to
         old_status = instance.status
-
         updated_instance = serializer.save()
-
-        # Fire automation: TASK_UPDATED
         try:
             from .automation_engine import AutomationEngine
             AutomationEngine.process_event('TASK_UPDATED', updated_instance.project_id, task=updated_instance)
             if updated_instance.assigned_to != old_assigned_to:
                 AutomationEngine.process_event('ASSIGNEE_CHANGED', updated_instance.project_id, task=updated_instance)
-            if updated_instance.status_id != old_status.id:
+            if old_status and updated_instance.status_id != old_status.id:
                 AutomationEngine.process_event('STATUS_CHANGED', updated_instance.project_id, task=updated_instance)
         except Exception as e:
             import logging
             logging.getLogger(__name__).error(f"Automation error on update: {e}")
-
-        # Fire plugin events
         try:
             from plugins import fire
             fire('on_task_updated', task=updated_instance)
-            if updated_instance.assigned_to != old_assigned_to:
-                fire('on_task_assigned', task=updated_instance, assignee=updated_instance.assigned_to)
-            if updated_instance.status_id != old_status.id:
-                fire('on_task_status_changed',
-                     task=updated_instance,
-                     old_status=old_status.category,
-                     new_status=updated_instance.status.category)
         except Exception:
             pass
-
-        # Handle Assigned_to Notifications
         if updated_instance.assigned_to and updated_instance.assigned_to != old_assigned_to:
             actor_user = self.request.user if self.request.user.is_authenticated else None
             if actor_user and actor_user.id != updated_instance.assigned_to.id:
