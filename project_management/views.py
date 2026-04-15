@@ -229,6 +229,7 @@ class IssueLinkViewSet(viewsets.ModelViewSet):
 class TaskStatusViewSet(viewsets.ModelViewSet):
     queryset = TaskStatus.objects.all()
     serializer_class = TaskStatusSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         queryset = TaskStatus.objects.all()
@@ -236,6 +237,14 @@ class TaskStatusViewSet(viewsets.ModelViewSet):
         if project_id:
             queryset = queryset.filter(project_id=project_id)
         return queryset
+
+    @action(detail=False, methods=['post'], url_path='reorder')
+    def reorder(self, request):
+        """Reorder statuses: expects [{"id": 1, "order": 1}, ...]"""
+        items = request.data.get('items', [])
+        for item in items:
+            TaskStatus.objects.filter(id=item['id']).update(order=item['order'])
+        return Response({'status': 'reordered'})
 
 class WorkflowTransitionViewSet(viewsets.ModelViewSet):
     queryset = WorkflowTransition.objects.all()
