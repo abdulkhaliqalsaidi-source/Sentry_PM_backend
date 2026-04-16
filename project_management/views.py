@@ -830,6 +830,16 @@ def project_velocity(request, project_id):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
+def all_users_list(request):
+    """Return all users for member selection - accessible to any authenticated user."""
+    from tracker.models import User
+    from tracker.serializers import UserSerializer
+    users = User.objects.all().order_by('username')
+    serializer = UserSerializer(users, many=True)
+    return Response(serializer.data)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def project_users(request):
     from tracker.models import User
     from tracker.serializers import UserSerializer
@@ -915,7 +925,7 @@ def update_task_status(request, pk):
 class ProjectMessageViewSet(viewsets.ModelViewSet):
     queryset = ProjectMessage.objects.all()
     serializer_class = ProjectMessageSerializer
-    permission_classes = [CanViewChat]
+    permission_classes = [IsAuthenticated]
     parser_classes = (MultiPartParser, FormParser, JSONParser)
 
     def get_queryset(self):
@@ -936,7 +946,7 @@ from .serializers import DocumentationSerializer, DocumentRevisionSerializer, Do
 
 class DocTagViewSet(viewsets.ModelViewSet):
     serializer_class = DocTagSerializer
-    permission_classes = [CanViewDocs]
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         project_id = self.request.query_params.get('project_id')
@@ -955,7 +965,7 @@ class DocumentationViewSet(viewsets.ModelViewSet):
             return [CanEditDoc()]
         if self.action == 'destroy':
             return [CanDeleteDoc()]
-        return [CanViewDocs()]
+        return [IsAuthenticated()]
 
     def get_queryset(self):
         project_id = self.request.query_params.get('project_id')
@@ -1040,7 +1050,7 @@ from .serializers import DocCommentSerializer
 
 class DocCommentViewSet(viewsets.ModelViewSet):
     serializer_class = DocCommentSerializer
-    permission_classes = [CanViewDocs]
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         doc_id = self.request.query_params.get('document')
@@ -1061,7 +1071,7 @@ class DocCommentViewSet(viewsets.ModelViewSet):
 class APIEndpointViewSet(viewsets.ModelViewSet):
     serializer_class = APIEndpointSerializer
     pagination_class = None
-    permission_classes = [CanViewDocs]
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         project_id = self.request.query_params.get('project')
@@ -1166,7 +1176,7 @@ class EvaluationPeriodViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action in ('create', 'update', 'partial_update', 'destroy'):
             return [CanManageEvaluations()]
-        return [CanViewEvaluations()]
+        return [IsAuthenticated()]
 
     def get_queryset(self):
         qs = EvaluationPeriod.objects.all()
@@ -1235,7 +1245,11 @@ class EvaluationPeriodViewSet(viewsets.ModelViewSet):
 class KPIViewSet(viewsets.ModelViewSet):
     queryset = KPI.objects.filter(is_active=True)
     serializer_class = KPISerializer
-    permission_classes = [CanViewEvaluations]
+
+    def get_permissions(self):
+        if self.action in ('create', 'update', 'partial_update', 'destroy'):
+            return [CanManageEvaluations()]
+        return [IsAuthenticated()]
 
     def get_queryset(self):
         qs = KPI.objects.filter(is_active=True)
@@ -1252,7 +1266,7 @@ class UserEvaluationViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action in ('create', 'update', 'partial_update', 'destroy'):
             return [CanManageEvaluations()]
-        return [CanViewEvaluations()]
+        return [IsAuthenticated()]
 
     def get_queryset(self):
         qs = UserEvaluation.objects.select_related('user', 'period').prefetch_related('details__kpi')
@@ -1369,7 +1383,11 @@ class UserEvaluationViewSet(viewsets.ModelViewSet):
 class EvaluationDetailViewSet(viewsets.ModelViewSet):
     queryset = EvaluationDetail.objects.select_related('kpi', 'evaluation')
     serializer_class = EvaluationDetailSerializer
-    permission_classes = [CanViewEvaluations]
+
+    def get_permissions(self):
+        if self.action in ('create', 'update', 'partial_update', 'destroy'):
+            return [CanManageEvaluations()]
+        return [IsAuthenticated()]
 
     def get_queryset(self):
         qs = EvaluationDetail.objects.select_related('kpi', 'evaluation')
@@ -1394,7 +1412,7 @@ from .serializers import (
 class CustomFieldViewSet(viewsets.ModelViewSet):
     queryset = CustomField.objects.all()
     serializer_class = CustomFieldSerializer
-    permission_classes = [CanViewSettings]
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -1406,7 +1424,7 @@ class CustomFieldViewSet(viewsets.ModelViewSet):
 class CustomFieldOptionViewSet(viewsets.ModelViewSet):
     queryset = CustomFieldOption.objects.all()
     serializer_class = CustomFieldOptionSerializer
-    permission_classes = [CanViewSettings]
+    permission_classes = [IsAuthenticated]
 
 class TaskCustomFieldValueViewSet(viewsets.ModelViewSet):
     queryset = TaskCustomFieldValue.objects.all()
@@ -1423,7 +1441,11 @@ class TaskCustomFieldValueViewSet(viewsets.ModelViewSet):
 class AutomationRuleViewSet(viewsets.ModelViewSet):
     queryset = AutomationRule.objects.all()
     serializer_class = AutomationRuleSerializer
-    permission_classes = [CanViewSettings]
+
+    def get_permissions(self):
+        if self.action in ('create', 'update', 'partial_update', 'destroy'):
+            return [CanViewSettings()]
+        return [IsAuthenticated()]
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -1435,17 +1457,17 @@ class AutomationRuleViewSet(viewsets.ModelViewSet):
 class AutomationTriggerViewSet(viewsets.ModelViewSet):
     queryset = AutomationTrigger.objects.all()
     serializer_class = AutomationTriggerSerializer
-    permission_classes = [CanViewSettings]
+    permission_classes = [IsAuthenticated]
 
 class AutomationConditionViewSet(viewsets.ModelViewSet):
     queryset = AutomationCondition.objects.all()
     serializer_class = AutomationConditionSerializer
-    permission_classes = [CanViewSettings]
+    permission_classes = [IsAuthenticated]
 
 class AutomationActionViewSet(viewsets.ModelViewSet):
     queryset = AutomationAction.objects.all()
     serializer_class = AutomationActionSerializer
-    permission_classes = [CanViewSettings]
+    permission_classes = [IsAuthenticated]
 
 class VersionViewSet(viewsets.ModelViewSet):
     queryset = Version.objects.all()

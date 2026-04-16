@@ -3,7 +3,7 @@ from rest_framework.routers import DefaultRouter
 from .views import (
     ProjectViewSet, TaskViewSet, CommentViewSet, SubtaskViewSet,
     SprintViewSet, EpicViewSet, LabelViewSet, ProjectRoleViewSet, AttachmentViewSet, 
-    IssueLinkViewSet, project_users, TaskStatusViewSet, WorkflowTransitionViewSet,
+    IssueLinkViewSet, project_users, all_users_list, TaskStatusViewSet, WorkflowTransitionViewSet,
     update_task_status, NotificationViewSet, ProjectMessageViewSet, DocumentationViewSet,
     project_api_extract, APIEndpointViewSet, upload_doc_image, DocCommentViewSet,
     DocTagViewSet,
@@ -52,6 +52,7 @@ router.register(r'plugins', PluginModelViewSet)
 urlpatterns = [
     path('', include(router.urls)),
     path('project-users/', project_users, name='project_users'),
+    path('all-users/', all_users_list, name='all_users_list'),
     path('tasks/<int:pk>/update-status/', update_task_status, name='update_task_status'),
     path('projects/<int:project_id>/extract-api/', project_api_extract, name='project_api_extract'),
     path('projects/<int:project_id>/bottleneck/', project_bottleneck, name='project_bottleneck'),

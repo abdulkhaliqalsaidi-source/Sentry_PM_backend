@@ -158,6 +158,9 @@ else:
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
             'NAME': BASE_DIR / 'db.sqlite3',
+            'OPTIONS': {
+                'timeout': 20,  # seconds to wait on lock before raising error
+            }
         }
     }
 
@@ -209,3 +212,17 @@ SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
+
+# ─── SQLite WAL mode ──────────────────────────────────────────────────────────
+# Enables Write-Ahead Logging to reduce "database is locked" errors under
+# concurrent reads/writes (common with Daphne/ASGI + multiple workers).
+if not os.environ.get('DATABASE_URL') and _db_engine != 'postgresql':
+    from django.db.backends.signals import connection_created
+
+    def _set_wal_mode(sender, connection, **kwargs):
+        if connection.vendor == 'sqlite':
+            connection.cursor().execute('PRAGMA journal_mode=WAL;')
+            connection.cursor().execute('PRAGMA synchronous=NORMAL;')
+            connection.cursor().execute('PRAGMA busy_timeout=20000;')
+
+    connection_created.connect(_set_wal_mode)
