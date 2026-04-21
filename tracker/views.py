@@ -70,14 +70,30 @@ def capture_error(request):
 
         # Sync with Project Management App
         try:
-            from project_management.models import Project as PMProject
-            # Check if it exists in PM app
+            from project_management.models import Project as PMProject, TaskStatus as PMTaskStatus
             if not PMProject.objects.filter(name=project).exists():
-                # Find a default owner (first superuser or any user)
                 owner = User.objects.filter(is_superuser=True).first() or User.objects.first()
                 if owner:
-                    PMProject.objects.create(name=project, description=f"Auto-created from Sentry Tracker for {project}", owner=owner)
-                    print(f"Auto-created PM Project: {project}")
+                    pm_project = PMProject.objects.create(
+                        name=project,
+                        description=f"Auto-created from Sentry Tracker for {project}",
+                        owner=owner
+                    )
+                    # FIX #9: create default TaskStatuses so Kanban/Backlog work
+                    default_statuses = [
+                        ('To Do',      '#64748b', 0, 'TO_DO'),
+                        ('In Progress','#3b82f6', 1, 'IN_PROGRESS'),
+                        ('In Review',  '#f59e0b', 2, 'IN_REVIEW'),
+                        ('Done',       '#10b981', 3, 'DONE'),
+                    ]
+                    for name, color, order, category in default_statuses:
+                        PMTaskStatus.objects.create(
+                            project=pm_project,
+                            name=name,
+                            color=color,
+                            order=order,
+                            category=category,
+                        )
         except Exception as e:
             print(f"Failed to sync PM Project: {e}")
 
@@ -99,9 +115,13 @@ def capture_error(request):
         )
 
         if not created:
-            issue.counter += 1
-            issue.project = project_obj # ensure it's linked
-            issue.save()
+            # FIX #3: use atomic F() expression to avoid race condition
+            from django.db.models import F
+            Issue.objects.filter(pk=issue.pk).update(
+                counter=F('counter') + 1,
+                project=project_obj
+            )
+            issue.refresh_from_db()
 
         # Automatic Task Creation in Project Management
         try:
@@ -443,16 +463,26 @@ def login_user(request):
 
 @api_view(['GET'])
 def get_profile(request):
-    # Allow fetching own profile or any profile for superusers
+    # FIX #2: users can only fetch own profile; superusers can fetch any
     username = request.query_params.get('username')
-    if username and request.user.is_superuser:
-        user = get_object_or_404(User, username=username)
+    if username:
+        if request.user.is_superuser or request.user.username == username:
+            user = get_object_or_404(User, username=username)
+        else:
+            return Response({"error": "غير مصرح لك بعرض هذا الملف الشخصي"}, status=403)
     else:
         user = request.user
     
-    projects = Project.objects.all()
+    # FIX #2b: only superusers get all projects; others get their own only
+    if request.user.is_superuser:
+        projects = Project.objects.all()
+    else:
+        own_projects = Project.objects.filter(developers=user)
+        primary = Project.objects.filter(pk=user.primary_project.pk) if user.primary_project else Project.objects.none()
+        projects = (own_projects | primary).distinct()
+
     user_serializer = UserSerializer(user)
-    projects_serializer = ProjectSerializer(projects, many=True)
+    projects_serializer = ProjectSerializer(projects.distinct(), many=True)
     
     return Response({
         "user": user_serializer.data,
@@ -473,12 +503,15 @@ def update_profile(request):
     new_password = request.data.get('password')
     if new_password and new_password.strip():
         user.set_password(new_password)
-        
-    if current_username and current_username != user.username:
-        # Check if new username is taken
-        if User.objects.filter(username=current_username).exists():
-             return Response({"error": "اسم المستخدم هذا مأخوذ بالفعل"}, status=400)
-        user.username = current_username
+
+    # FIX #1: 'current_username' was undefined — now correctly reads new username from request
+    new_username = request.data.get('newUsername') or request.data.get('username')
+    original_username = target_username or user.username
+    if new_username and new_username != original_username:
+        # Check if new username is already taken
+        if User.objects.filter(username=new_username).exists():
+            return Response({"error": "اسم المستخدم هذا مأخوذ بالفعل"}, status=400)
+        user.username = new_username
     
     # Update Project if provided
     new_project_id = request.data.get('projectId')
@@ -487,7 +520,7 @@ def update_profile(request):
             project_obj = Project.objects.get(id=new_project_id)
             user.primary_project = project_obj
         except Project.DoesNotExist:
-            pass # Or return error
+            pass
     
     # Update other fields
     user.first_name = request.data.get('firstName', user.first_name)
@@ -537,17 +570,18 @@ def update_user_admin(request):
         except Project.DoesNotExist:
             pass
             
-    # Update Permission Group
-    group_id = request.data.get('group_id')
-    print(f"DEBUG: update_user_admin group_id={group_id}")
-    if group_id:
-        try:
-            group = PermissionGroup.objects.get(id=group_id)
-            user.permission_group = group
-        except PermissionGroup.DoesNotExist:
-            pass
-    elif group_id == None:
-        user.permission_group = None
+    # Update Permission Group — FIX #10: use `is None` not `== None`, handle 0 correctly
+    # Frontend sends null to clear the group, or an integer ID to set it
+    group_id = request.data.get('group_id', 'MISSING')
+    if group_id != 'MISSING':
+        if group_id is None:
+            user.permission_group = None
+        else:
+            try:
+                group = PermissionGroup.objects.get(id=group_id)
+                user.permission_group = group
+            except PermissionGroup.DoesNotExist:
+                pass
             
     user.save()
     serializer = UserSerializer(user)

@@ -58,25 +58,27 @@ class NotificationViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     
     def get_queryset(self):
-        queryset = Notification.objects.all()
         user = self.request.user
-        
-        # Filter by authenticated user (non-superusers only see their own)
+
+        # FIX #19: superusers get their own notifications too (not all system notifications)
+        # Apply ordering and a sensible default limit to avoid memory issues
         if user and user.is_authenticated and not user.is_superuser:
-            queryset = queryset.filter(recipient=user)
-        
+            queryset = Notification.objects.filter(recipient=user)
+        else:
+            queryset = Notification.objects.filter(recipient=user)
+
         is_read = self.request.query_params.get('is_read')
         if is_read is not None:
             if is_read.lower() == 'true':
                 queryset = queryset.filter(is_read=True)
             elif is_read.lower() == 'false':
                 queryset = queryset.filter(is_read=False)
-                
+
         type_filter = self.request.query_params.get('type')
         if type_filter:
             queryset = queryset.filter(type=type_filter)
 
-        return queryset
+        return queryset.order_by('-created_at')[:100]
 
     @action(detail=False, methods=['post'], url_path='mark-all-read')
     def mark_all_read(self, request):
@@ -572,13 +574,16 @@ class CommentViewSet(viewsets.ModelViewSet):
 
         # Notify task assignee on comment
         if comment.task and comment.task.assigned_to and comment.task.assigned_to != comment.author:
-            Notification.objects.create(
-                recipient=comment.task.assigned_to,
-                actor=comment.author if comment.author else comment.task.assigned_to,
-                verb="commented on",
-                type="COMMENT",
-                task=comment.task
-            )
+            # FIX #8: ensure actor is not None (fallback to recipient if no author)
+            actor = comment.author if comment.author else comment.task.assigned_to
+            if actor:  # Only create notification if we have a valid actor
+                Notification.objects.create(
+                    recipient=comment.task.assigned_to,
+                    actor=actor,
+                    verb="commented on",
+                    type="COMMENT",
+                    task=comment.task
+                )
 
         # Handle @mention notifications
         if comment.content and comment.author:
@@ -626,16 +631,18 @@ class WorkLogViewSet(viewsets.ModelViewSet):
         user = self.request.user if self.request.user.is_authenticated else None
         log = serializer.save(user=user)
 
-        # Update task time_spent to sum of all logs
+        # Update task time_spent using aggregate to avoid N+1
+        from django.db.models import Sum
         task = log.task
-        total = sum(wl.hours for wl in task.work_logs.all())
+        total = task.work_logs.aggregate(total=Sum('hours'))['total'] or 0.0
         task.time_spent = total
         task.save(update_fields=['time_spent'])
 
     def perform_destroy(self, instance):
         task = instance.task
         instance.delete()
-        total = sum(wl.hours for wl in task.work_logs.all())
+        from django.db.models import Sum
+        total = task.work_logs.aggregate(total=Sum('hours'))['total'] or 0.0
         task.time_spent = total
         task.save(update_fields=['time_spent'])
 
@@ -688,7 +695,7 @@ def project_bottleneck(request, project_id):
     # ── 2. Blocked Tasks ─────────────────────────────────────────────────────
     blocked_tasks = []
     for t in all_tasks:
-        if t.status.category != 'DONE':
+        if t.status and t.status.category != 'DONE':
             blocking_links = [l for l in t.incoming_links.all() if l.type == 'BLOCKS']
             if blocking_links:
                 blocked_tasks.append({
@@ -702,7 +709,7 @@ def project_bottleneck(request, project_id):
     # ── 3. Overdue Tasks ─────────────────────────────────────────────────────
     overdue_tasks = []
     for t in all_tasks:
-        if t.end_date and t.end_date < now and t.status.category != 'DONE':
+        if t.end_date and t.end_date < now and t.status and t.status.category != 'DONE':
             days_overdue = (now - t.end_date).days
             overdue_tasks.append({
                 'id': t.id,
@@ -733,7 +740,7 @@ def project_bottleneck(request, project_id):
     # ── 5. WIP per Status Column ─────────────────────────────────────────────
     status_wip = {}
     for t in all_tasks:
-        if t.status.category != 'DONE':
+        if t.status and t.status.category != 'DONE':
             sid = t.status.id
             if sid not in status_wip:
                 status_wip[sid] = {
@@ -751,9 +758,9 @@ def project_bottleneck(request, project_id):
 
     # ── 6. Unassigned High-Priority Tasks ────────────────────────────────────
     unassigned_high = [
-        {'id': t.id, 'title': t.title, 'priority': t.priority, 'status': t.status.name}
+        {'id': t.id, 'title': t.title, 'priority': t.priority, 'status': t.status.name if t.status else None}
         for t in all_tasks
-        if t.assigned_to is None and t.priority == 'HIGH' and t.status.category != 'DONE'
+        if t.assigned_to is None and t.priority == 'HIGH' and t.status and t.status.category != 'DONE'
     ]
 
     # ── Summary Score (0–100, lower = more bottlenecks) ──────────────────────
